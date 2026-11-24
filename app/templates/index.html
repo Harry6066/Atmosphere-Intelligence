@@ -1,0 +1,808 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Executive Overview{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Executive Header
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-cyan">SIH26073</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">INT396: UNSUPERVISED MACHINE LEARNING</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-secondary)]">
+          NOAA GHCN-Daily Archive • 2016–2023 (8 Years)
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Faulty Weather-Station Observation Detection
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        A dual-algorithm unsupervised machine learning framework combining <span class="text-cyan-400 font-medium">Isolation Forest</span> (path-length tree isolation) and <span class="text-violet-400 font-medium">Local Outlier Factor</span> (k-NN density reachability) to detect multivariate anomalies, separate sensor recording malfunctions from confirmed extreme meteorological events, and visualize high-dimensional climatological boundaries via PCA.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="/dataset-explorer" class="atm-btn-primary">
+        <i data-lucide="database" class="w-4 h-4"></i>
+        <span>Dataset Explorer</span>
+      </a>
+      <a href="/model-comparison" class="atm-btn-secondary">
+        <i data-lucide="git-compare" class="w-4 h-4"></i>
+        <span>Model Comparison</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. KPI Telemetry Cards (Real Backend Metrics)
+       ========================================================================= -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold flex items-center gap-2">
+        <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+        <span>Core Experimental Benchmarks (Verified Data)</span>
+      </h2>
+      <span class="text-xs font-mono text-[var(--text-muted)]">4 Stations • 11,688 Observations</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {{ states.kpi_card(
+          "Total Observations", 
+          overview.total_observations | default(11688) | string, 
+          "4 Stations • 2016–2023 (8 Full Years)", 
+          "database", 
+          "100% Ingested", 
+          "normal"
+      ) }}
+      
+      {{ states.kpi_card(
+          "Isolation Forest (c=0.03)", 
+          overview.isolation_forest_baseline.anomalies | default(351) | string, 
+          "Global Tree Cuts • 100 Estimators", 
+          "git-branch", 
+          "3.00% Contamination", 
+          "anomaly"
+      ) }}
+      
+      {{ states.kpi_card(
+          "Local Outlier Factor (k=20)", 
+          overview.lof_baseline.anomalies | default(351) | string, 
+          "Local Density • k=20 Neighbors", 
+          "target", 
+          "3.00% Contamination", 
+          "warning"
+      ) }}
+      
+      {{ states.kpi_card(
+          "Consensus Outliers (IF ∩ LOF)", 
+          overview.consensus_metrics.consensus_anomalies | default(78) | string, 
+          "Joint Anomaly Agreement • High Severity", 
+          "shield-alert", 
+          "0.67% of Observations", 
+          "cyan"
+      ) }}
+    </div>
+
+    <!-- Secondary Benchmarks: Agreement vs Anomaly Overlap -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+      
+      <!-- Binary Agreement -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Binary Agreement</span>
+          <i data-lucide="check-check" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          {{ overview.consensus_metrics.agreement_percentage | default(95.33) }}%
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Both algorithms agree on 11,142 out of 11,688 points (includes 11,064 jointly normal records).
+        </p>
+      </div>
+
+      <!-- Jaccard Similarity -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Jaccard Overlap</span>
+          <i data-lucide="intersect" class="w-4 h-4 text-cyan-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          {{ "%.4f"|format(overview.consensus_metrics.jaccard_similarity | default(0.1250)) }}
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Strict anomaly overlap: <span class="font-mono text-cyan-400">78 / 624 = 12.50%</span>. Highlights diverse inductive biases.
+        </p>
+      </div>
+
+      <!-- PCA Variance -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">PCA 2D Variance</span>
+          <i data-lucide="orbit" class="w-4 h-4 text-violet-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          {{ overview.pca_metrics.cumulative_explained_variance_pct | default(44.05) }}%
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          PC1 (27.96%, Thermal/Diurnal) + PC2 (16.08%, Snow/Moisture).
+        </p>
+      </div>
+
+      <!-- Physical Quality Rule Violations -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Physical QC Violations</span>
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          0 Detected
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Zero negative PRCP, zero inverted temps (TMIN &gt; TMAX), zero official NOAA QC flags.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. Interactive Scientific Methodology Pipeline
+       ========================================================================= -->
+  <div class="atm-card p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="workflow" class="w-4 h-4 text-cyan-400"></i>
+          <span>Unsupervised Scientific Detection Pipeline</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          End-to-end data transformation, unsupervised modeling, consensus evaluation, and meteorological validation.
+        </p>
+      </div>
+      <span class="atm-badge atm-badge-normal">All 8 Stages Implemented &amp; Verified</span>
+    </div>
+
+    <!-- Pipeline Flow Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      
+      <!-- Stage 1 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">01 / INGEST</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="cloud-download" class="w-4 h-4 text-[var(--text-primary)]"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">NOAA Ingest</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            GHCN-Daily 4 stations, 2016–2023, 11,688 rows.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          Decoded tenths °C/mm
+        </div>
+      </div>
+
+      <!-- Stage 2 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">02 / AUDIT</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-[var(--text-primary)]"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">QC Audit</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Physical limits, inverted temp, negative PRCP checks.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-emerald-400">
+          0 Physical Violations
+        </div>
+      </div>
+
+      <!-- Stage 3 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">03 / FEAT ENG</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="cpu" class="w-4 h-4 text-[var(--text-primary)]"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">Features</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Diurnal range, 1D diff, cyclical sine/cosine DOY.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          10 Model Features
+        </div>
+      </div>
+
+      <!-- Stage 4 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">04 / SCALE</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="scale" class="w-4 h-4 text-[var(--text-primary)]"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">Standardize</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Z-score standard scaling: zero mean, unit variance.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          Preserves Outliers
+        </div>
+      </div>
+
+      <!-- Stage 5 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-cyan-500/30 relative flex flex-col justify-between shadow-[0_0_15px_rgba(0,212,255,0.08)]">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">05 / MODEL A</span>
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="git-branch" class="w-4 h-4 text-cyan-400"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">Isolation Forest</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            100 isolation trees, c=0.03, average path length.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-cyan-400">
+          351 Anomalies (3.0%)
+        </div>
+      </div>
+
+      <!-- Stage 6 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-violet-500/30 relative flex flex-col justify-between shadow-[0_0_15px_rgba(129,140,248,0.08)]">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-violet-400 font-bold">06 / MODEL B</span>
+            <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="target" class="w-4 h-4 text-violet-400"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">LOF</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            k=20 nearest neighbors, local density reachability.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-violet-400">
+          351 Anomalies (3.0%)
+        </div>
+      </div>
+
+      <!-- Stage 7 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">07 / DIM RED</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="orbit" class="w-4 h-4 text-[var(--text-primary)]"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">PCA 2D</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            PC1 (27.96%) &amp; PC2 (16.08%) orthogonal space.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          44.05% Variance
+        </div>
+      </div>
+
+      <!-- Stage 8 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold">08 / AUDIT</span>
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          </div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="search-check" class="w-4 h-4 text-[var(--text-primary)]"></i>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">Consensus</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            78 consensus outliers validated via extreme events.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-cyan-400 font-bold">
+          78 Confirmed Hits
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. Model Comparison & Consensus Breakdown (Plotly.js + Matrix)
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Plotly Consensus Breakdown Chart -->
+    <div class="lg:col-span-5 atm-card p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i>
+            <span>Consensus Distribution</span>
+          </h3>
+          <span class="text-xs font-mono text-[var(--text-muted)]">N = 11,688</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-4">
+          Classification partitions across Isolation Forest (c=0.03) and LOF (k=20).
+        </p>
+
+        <!-- Plotly Container -->
+        <div id="overview-consensus-chart" style="height: 270px; width: 100%;"></div>
+      </div>
+
+      <!-- Legend Breakdown -->
+      <div class="grid grid-cols-2 gap-2 pt-4 border-t border-[var(--border-subtle)] text-xs font-mono">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+          <span class="text-[var(--text-secondary)]">Consensus: <strong class="text-[var(--text-primary)]">78</strong> (0.7%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+          <span class="text-[var(--text-secondary)]">IF Only: <strong class="text-[var(--text-primary)]">273</strong> (2.3%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
+          <span class="text-[var(--text-secondary)]">LOF Only: <strong class="text-[var(--text-primary)]">273</strong> (2.3%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+          <span class="text-[var(--text-secondary)]">Normal: <strong class="text-[var(--text-primary)]">11,064</strong> (94.7%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Methodological Comparison Matrix -->
+    <div class="lg:col-span-7 atm-card p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-violet-400"></i>
+            <span>Algorithm Architectural Comparison</span>
+          </h3>
+          <span class="atm-badge atm-badge-cyan">Dual Paradigm</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-4">
+          Structural comparison between tree-partition isolation and local density estimation.
+        </p>
+
+        <!-- Comparison Table -->
+        <div class="overflow-x-auto">
+          <table class="atm-table text-xs">
+            <thead>
+              <tr>
+                <th class="py-2.5 px-3">Property</th>
+                <th class="py-2.5 px-3 text-cyan-400">Isolation Forest (c=0.03)</th>
+                <th class="py-2.5 px-3 text-violet-400">Local Outlier Factor (k=20)</th>
+                <th class="py-2.5 px-3 text-emerald-400">Consensus Ensemble</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-semibold text-[var(--text-primary)]">Theoretical Basis</td>
+                <td>Random axis-aligned recursive cuts</td>
+                <td>k-NN reachability distance ratio</td>
+                <td>Intersection (A ∩ B)</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-[var(--text-primary)]">Scope of Isolation</td>
+                <td>Global geometric isolation</td>
+                <td>Local neighborhood density</td>
+                <td>Multi-scale divergence</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-[var(--text-primary)]">Hyperparameters</td>
+                <td>n_trees=100, max_samples=256</td>
+                <td>k_neighbors=20, Euclidean metric</td>
+                <td>Joint positive classification</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-[var(--text-primary)]">Time Complexity</td>
+                <td>O(t • n • log(s)) [Linear/Fast]</td>
+                <td>O(n² • d) [Quadratic in memory]</td>
+                <td>Bounded by LOF computation</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-[var(--text-primary)]">Baseline Flagged</td>
+                <td class="font-mono text-cyan-400 font-bold">351 observations (3.00%)</td>
+                <td class="font-mono text-violet-400 font-bold">351 observations (3.00%)</td>
+                <td class="font-mono text-emerald-400 font-bold">78 observations (0.67%)</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-[var(--text-primary)]">Meteorological Detection</td>
+                <td>Extreme regional values &amp; spikes</td>
+                <td>Clustered microclimate shifts</td>
+                <td>High-confidence physical anomalies</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+        <span>Combined unique flagged observations: <strong class="text-[var(--text-primary)] font-mono">624 (5.34%)</strong></span>
+        <a href="/model-comparison" class="text-cyan-400 hover:underline flex items-center gap-1 font-mono">
+          <span>View 9-Cell Parameter Sensitivity Matrix</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       5. Scientific Interpretation Panel (Academic Rigor & Ground Truth)
+       ========================================================================= -->
+  <div class="atm-card p-6">
+    <div class="flex items-center gap-2.5 mb-4">
+      <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400">
+        <i data-lucide="microscope" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)]">Scientific Interpretation &amp; Meteorological Ground Truth</h3>
+        <p class="text-xs text-[var(--text-secondary)]">Critical distinction between statistical outliers and confirmed hardware sensor malfunctions.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+      
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-cyan-400">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Why Compare Two Methods?</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          Isolation Forest isolates points globally using random hyperplanes, excelling at extreme value detection. In contrast, LOF measures local neighborhood density, identifying points isolated relative to surrounding clusters. Comparing both guards against individual algorithmic bias.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-emerald-400">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">What Consensus Represents</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          The <span class="font-semibold text-emerald-400">78 consensus anomalies</span> represent observation records flagged by both Isolation Forest and LOF independently. These points exhibit high multi-dimensional divergence from normal seasonal distributions and warrant immediate quality inspection.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-amber-400">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Outliers != Faulty Sensors</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          <strong class="text-amber-300">Crucial Scientific Principle:</strong> Statistical outliers are NOT automatically broken sensors. Genuine severe weather events (e.g. flash floods, blizzards, heat waves) naturally produce extreme measurements that are meteorologically valid despite statistical rarity.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-violet-400">
+          <i data-lucide="cloud-lightning" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Historical Benchmarks</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          Verified historical events confirm detection efficacy: the <span class="font-medium text-[var(--text-primary)]">2019 Polar Vortex (-30.6°C Chicago)</span>, the <span class="font-medium text-[var(--text-primary)]">2021 Pacific NW Heat Dome (42.2°C Seattle)</span>, and <span class="font-medium text-[var(--text-primary)]">Hurricane Ida (181.1mm Central Park)</span> were all successfully captured.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Academic Warning Alert -->
+    <div class="mt-4 p-3.5 rounded-lg bg-sky-950/20 border border-sky-500/30 flex items-start gap-3 text-xs text-sky-200">
+      <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
+      <div class="leading-relaxed">
+        <strong>Academic Evaluation Note:</strong> The 78 consensus records represent candidate anomalies for human-in-the-loop meteorological audit rather than confirmed hardware failures. Physical rule checks confirmed 0 inverted temperatures (TMIN &gt; TMAX) and 0 negative precipitation values, demonstrating that the NOAA GHCN-Daily quality screening successfully filtered gross corruptions before ingest.
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. Four Weather Station Climatic Regimes
+       ========================================================================= -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold flex items-center gap-2">
+        <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400"></i>
+        <span>Monitored NOAA Weather Station Network</span>
+      </h3>
+      <a href="/dataset-explorer" class="text-xs text-cyan-400 hover:underline flex items-center gap-1 font-mono">
+        <span>Open Interactive Map &amp; Records Table</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Central Park -->
+      <div class="atm-card p-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="atm-badge atm-badge-cyan">USW00094728</span>
+            <span class="text-xs font-mono text-[var(--text-muted)]">Elev: 42.7m</span>
+          </div>
+          <h4 class="text-sm font-bold text-[var(--text-primary)]">NEW YORK CENTRAL PARK, NY</h4>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Humid Subtropical / Maritime Coastal</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] text-xs font-mono flex items-center justify-between">
+          <span class="text-[var(--text-muted)]">2,922 records</span>
+          <span class="text-cyan-400">2016–2023</span>
+        </div>
+      </div>
+
+      <!-- Chicago -->
+      <div class="atm-card p-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="atm-badge atm-badge-cyan">USW00094846</span>
+            <span class="text-xs font-mono text-[var(--text-muted)]">Elev: 204.8m</span>
+          </div>
+          <h4 class="text-sm font-bold text-[var(--text-primary)]">CHICAGO OHARE INTL AP, IL</h4>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Humid Continental / Extreme Cold &amp; Snow</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] text-xs font-mono flex items-center justify-between">
+          <span class="text-[var(--text-muted)]">2,922 records</span>
+          <span class="text-cyan-400">2016–2023</span>
+        </div>
+      </div>
+
+      <!-- Seattle -->
+      <div class="atm-card p-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="atm-badge atm-badge-cyan">USW00024233</span>
+            <span class="text-xs font-mono text-[var(--text-muted)]">Elev: 112.5m</span>
+          </div>
+          <h4 class="text-sm font-bold text-[var(--text-primary)]">SEATTLE TACOMA INTL AP, WA</h4>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Oceanic / High Precipitation Frequency</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] text-xs font-mono flex items-center justify-between">
+          <span class="text-[var(--text-muted)]">2,922 records</span>
+          <span class="text-cyan-400">2016–2023</span>
+        </div>
+      </div>
+
+      <!-- Miami -->
+      <div class="atm-card p-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="atm-badge atm-badge-cyan">USW00012839</span>
+            <span class="text-xs font-mono text-[var(--text-muted)]">Elev: 1.4m</span>
+          </div>
+          <h4 class="text-sm font-bold text-[var(--text-primary)]">MIAMI INTERNATIONAL AP, FL</h4>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Tropical Monsoon / High Thermal Baseline</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] text-xs font-mono flex items-center justify-between">
+          <span class="text-[var(--text-muted)]">2,922 records</span>
+          <span class="text-cyan-400">2016–2023</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. Module Directory Navigation
+       ========================================================================= -->
+  <div class="atm-card p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)]">Atmosphere Intelligence Module Directory</h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">Explore the end-to-end unsupervised pipeline modules.</p>
+      </div>
+      <span class="atm-badge atm-badge-cyan">10 Core Modules</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
+      
+      <a href="/dataset-explorer" class="atm-card p-4 atm-card-interactive no-underline group block border-cyan-500/30">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="database" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <span>2. Dataset Explorer</span>
+              <span class="atm-badge atm-badge-normal text-[10px]">Phase D Active</span>
+            </div>
+            <div class="text-xs text-[var(--text-muted)]">Interactive map, station filters &amp; CSV export</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/eda" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="line-chart" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">3. Exploratory Analysis</div>
+            <div class="text-xs text-[var(--text-muted)]">KDE distributions &amp; correlation heatmaps</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/data-quality" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">4. Quality &amp; Preprocessing</div>
+            <div class="text-xs text-[var(--text-muted)]">Physical audits, imputation &amp; scaling</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/isolation-forest" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="binary" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">5. Isolation Forest</div>
+            <div class="text-xs text-[var(--text-muted)]">Tree-based isolation &amp; contamination tuning</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/local-outlier-factor" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="scatter-chart" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">6. Local Outlier Factor</div>
+            <div class="text-xs text-[var(--text-muted)]">Local density reachability &amp; k-neighbors</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/model-comparison" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="git-compare" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">7. Model Comparison</div>
+            <div class="text-xs text-[var(--text-muted)]">Jaccard similarity &amp; agreement matrix</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/pca-visualization" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="orbit" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">8. PCA Visualization</div>
+            <div class="text-xs text-[var(--text-muted)]">2D orthogonal projection &amp; loadings</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/anomaly-investigation" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="search-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">9. Anomaly Investigation</div>
+            <div class="text-xs text-[var(--text-muted)]">Historical extreme events &amp; audit download</div>
+          </div>
+        </div>
+      </a>
+
+      <a href="/scientific-insights" class="atm-card p-4 atm-card-interactive no-underline group block">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400 group-hover:text-cyan-300">
+            <i data-lucide="microscope" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-[var(--text-primary)]">10. Scientific Insights</div>
+            <div class="text-xs text-[var(--text-muted)]">Geographical bias &amp; ethical AI analysis</div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Render Plotly Consensus Donut Chart
+  const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+  const textColor = isDark ? "#94a3b8" : "#475569";
+  const bgPaper = "rgba(0,0,0,0)";
+
+  const data = [{
+    values: [11064, 273, 273, 78],
+    labels: ["Normal Observations", "IF Only Anomalies", "LOF Only Anomalies", "Consensus Outliers"],
+    type: "pie",
+    hole: 0.65,
+    marker: {
+      colors: [
+        isDark ? "#1e293b" : "#cbd5e1", // Normal
+        "#38bdf8",                       // IF Only (Sky)
+        "#818cf8",                       // LOF Only (Indigo)
+        "#00d4ff"                        // Consensus (Cyan glow)
+      ],
+      line: {
+        color: isDark ? "#0c1527" : "#ffffff",
+        width: 2
+      }
+    },
+    textinfo: "label+percent",
+    textposition: "inside",
+    insidetextorientation: "radial",
+    hoverinfo: "label+value+percent",
+    showlegend: false
+  }];
+
+  const layout = {
+    margin: { t: 10, b: 10, l: 10, r: 10 },
+    paper_bgcolor: bgPaper,
+    plot_bgcolor: bgPaper,
+    font: {
+      family: "Inter, sans-serif",
+      color: textColor,
+      size: 11
+    },
+    annotations: [
+      {
+        font: { size: 18, color: isDark ? "#f8fafc" : "#0f172a", family: "JetBrains Mono, monospace", weight: "bold" },
+        showarrow: false,
+        text: "78",
+        x: 0.5,
+        y: 0.55
+      },
+      {
+        font: { size: 10, color: textColor, family: "Inter, sans-serif" },
+        showarrow: false,
+        text: "Consensus",
+        x: 0.5,
+        y: 0.42
+      }
+    ]
+  };
+
+  const config = {
+    responsive: true,
+    displayModeBar: false
+  };
+
+  if (window.Plotly && document.getElementById("overview-consensus-chart")) {
+    Plotly.newPlot("overview-consensus-chart", data, layout, config);
+  }
+});
+</script>
+{% endblock %}

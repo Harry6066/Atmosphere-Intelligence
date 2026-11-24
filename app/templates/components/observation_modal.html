@@ -1,0 +1,152 @@
+<!-- Reusable Scientific Observation Inspection Modal -->
+<div id="observation-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-200">
+  <div class="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-2xl p-6 text-[var(--text-primary)] space-y-6">
+    
+    <!-- Modal Header -->
+    <div class="flex items-start justify-between border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span id="modal-status-badge" class="atm-badge atm-badge-normal">Inspection</span>
+          <span id="modal-station-id" class="font-mono text-xs text-[var(--text-muted)]">STATION</span>
+          <span id="modal-date" class="font-mono text-xs px-2 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-subtle)]">DATE</span>
+        </div>
+        <h3 id="modal-station-name" class="text-xl font-bold text-[var(--text-primary)]">Station Name</h3>
+        <p id="modal-station-meta" class="text-xs text-[var(--text-secondary)] mt-0.5">Climate Zone // Coordinates</p>
+      </div>
+      <button onclick="closeObservationModal()" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors" aria-label="Close modal">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Alert / Scientific Caveat -->
+    <div class="p-3.5 rounded-lg bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300 flex items-start gap-3">
+      <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-sky-400 mt-0.5"></i>
+      <p class="leading-relaxed">
+        <strong class="text-sky-200 font-semibold">Statistical Candidate Note:</strong>
+        This observation is evaluated against empirical multivariate distributions. Statistical rarity does not constitute confirmed sensor hardware failure without secondary physical validation.
+      </p>
+    </div>
+
+    <!-- Physical Measurements Grid -->
+    <div>
+      <h4 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-3 flex items-center gap-2">
+        <i data-lucide="thermometer" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span>Recorded Meteorological Measurements</span>
+      </h4>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">MAX TEMP (TMAX)</div>
+          <div id="modal-tmax" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- &deg;C</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">MIN TEMP (TMIN)</div>
+          <div id="modal-tmin" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- &deg;C</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">DIURNAL RANGE</div>
+          <div id="modal-trange" class="text-lg font-bold font-mono text-cyan-400 mt-0.5">-- &deg;C</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">PRECIPITATION</div>
+          <div id="modal-prcp" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- mm</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">SNOWFALL</div>
+          <div id="modal-snow" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- mm</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">SNOW DEPTH</div>
+          <div id="modal-snwd" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- mm</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">&Delta; TMAX (1-DAY)</div>
+          <div id="modal-tmax-diff" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- &deg;C</div>
+        </div>
+        <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono text-[var(--text-muted)]">&Delta; TMIN (1-DAY)</div>
+          <div id="modal-tmin-diff" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-0.5">-- &deg;C</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Model Verdict Comparison -->
+    <div>
+      <h4 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-3 flex items-center gap-2">
+        <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span>Unsupervised Model Evaluations</span>
+      </h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- IF Verdict -->
+        <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[var(--text-primary)]">Isolation Forest</span>
+            <span id="modal-if-verdict" class="atm-badge atm-badge-normal">Evaluating</span>
+          </div>
+          <div class="flex items-baseline justify-between text-xs pt-1">
+            <span class="text-[var(--text-secondary)]">Decision Score:</span>
+            <span id="modal-if-score" class="font-mono font-bold text-[var(--text-primary)]">--</span>
+          </div>
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="text-[var(--text-secondary)]">Decision Boundary:</span>
+            <span class="font-mono text-[var(--text-muted)]">0.0000 (negative = outlier)</span>
+          </div>
+          <p id="modal-if-desc" class="text-[11px] text-[var(--text-secondary)] pt-1 border-t border-[var(--border-subtle)]">
+            Observation isolation trajectory.
+          </p>
+        </div>
+
+        <!-- LOF Verdict -->
+        <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[var(--text-primary)]">Local Outlier Factor (LOF)</span>
+            <span id="modal-lof-verdict" class="atm-badge atm-badge-normal">Evaluating</span>
+          </div>
+          <div class="flex items-baseline justify-between text-xs pt-1">
+            <span class="text-[var(--text-secondary)]">Negative Outlier Factor:</span>
+            <span id="modal-lof-score" class="font-mono font-bold text-[var(--text-primary)]">--</span>
+          </div>
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="text-[var(--text-secondary)]">Decision Offset Threshold:</span>
+            <span id="modal-lof-offset" class="font-mono text-[var(--text-muted)]">-1.3632</span>
+          </div>
+          <p id="modal-lof-desc" class="text-[11px] text-[var(--text-secondary)] pt-1 border-t border-[var(--border-subtle)]">
+            Local reachability density comparison.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scaled Feature Vector Display -->
+    <div>
+      <h4 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-2 flex items-center gap-2">
+        <i data-lucide="binary" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span>Standardized Feature Z-Scores (&sigma; Deviation)</span>
+      </h4>
+      <div id="modal-scaled-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-mono">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+
+    <!-- NOAA QC & Integrity Status -->
+    <div class="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-4 text-xs">
+      <div class="flex items-center gap-2">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        <span class="text-[var(--text-secondary)]">NOAA Official Quality Screening:</span>
+        <span id="modal-qc-status" class="font-mono font-semibold text-emerald-400">PASSED (All QFLAGs Empty)</span>
+      </div>
+      <div class="flex items-center gap-2 font-mono text-[var(--text-muted)]">
+        <span>Trace PRCP Flag:</span>
+        <span id="modal-trace-flag" class="font-bold text-[var(--text-primary)]">None</span>
+      </div>
+    </div>
+
+    <!-- Close Action -->
+    <div class="flex justify-end pt-2">
+      <button onclick="closeObservationModal()" class="atm-btn-secondary px-5 py-2">
+        Close Inspection
+      </button>
+    </div>
+
+  </div>
+</div>
+

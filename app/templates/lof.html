@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Local Outlier Factor{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Telemetry Identity
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-normal">UNSUPERVISED LEARNING</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 06</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-cyan-400 font-bold">
+          Local Density Estimation (k-NN)
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Local Outlier Factor (LOF) Anomaly Detection
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Estimates local density reachability against k-nearest neighbors. Identifies observations isolated relative to their local climatological neighborhood rather than the global distribution.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="/isolation-forest" class="atm-btn-primary">
+        <i data-lucide="binary" class="w-4 h-4"></i>
+        <span>Isolation Forest</span>
+      </a>
+      <a href="#sensitivity-section" class="atm-btn-secondary">
+        <i data-lucide="git-compare" class="w-4 h-4"></i>
+        <span>Neighborhood Sensitivity</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Educational Algorithm Fundamentals
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-5">
+    <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+      <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold flex items-center gap-2">
+        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
+        <span>Algorithm Fundamentals: Local Density vs Global Isolation</span>
+      </h3>
+      <span class="text-xs font-mono text-[var(--text-muted)]">Breunig et al. (SIGMOD 2000)</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[var(--text-secondary)] leading-relaxed">
+      <div class="space-y-2">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">1</span>
+          <span>Local Density Reachability</span>
+        </div>
+        <p>
+          Global algorithms fail when clusters have different densities. Miami forms a dense, compact cluster; Chicago forms a wide, dispersed cluster. LOF compares an observation&rsquo;s density solely to its <span class="font-mono text-cyan-300">k</span> nearest neighbors.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">2</span>
+          <span>Reachability Distance &amp; Ratio</span>
+        </div>
+        <p>
+          <span class="font-mono text-cyan-300">reach-dist_k(p, o) = max(k-dist(o), d(p, o))</span>. The local reachability density <span class="font-mono text-cyan-300">lrd(p)</span> is inverted average reachability. LOF is the average ratio of neighbors&rsquo; lrds to the observation&rsquo;s own lrd.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">3</span>
+          <span>Scikit-Learn Output Convention</span>
+        </div>
+        <p>
+          Scikit-learn defines <span class="font-mono text-cyan-300">negative_outlier_factor_ = -LOF</span>. Normal points score near <span class="font-mono text-cyan-300">-1.0</span>. Points scoring significantly below the decision threshold <span class="font-mono text-cyan-300">offset_ &asymp; -1.363</span> are classified as outliers.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. Dynamic Model Configuration & Parameter Tuning Panel
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+          <span>Local Outlier Factor Configuration</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Configure neighborhood scale k, contamination cutoff, and distance metric for training-set batch detection (novelty=False).
+        </p>
+      </div>
+      <div id="lof-execution-badge" class="flex items-center gap-2 text-xs font-mono px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="lof-execution-status-text">Baseline Precomputed Cache Active (0 ms)</span>
+      </div>
+    </div>
+
+    <form id="lof-config-form" class="space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Neighborhood Size k -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Neighborhood Size (k-NN)
+          </label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <label class="atm-radio-card cursor-pointer text-center p-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:border-cyan-400 text-xs font-mono">
+              <input type="radio" name="n_neighbors" value="10" class="hidden">
+              <span>k = 10</span>
+            </label>
+            <label class="atm-radio-card cursor-pointer text-center p-2 rounded-lg border border-cyan-400 bg-cyan-500/10 text-cyan-300 font-bold text-xs font-mono active">
+              <input type="radio" name="n_neighbors" value="20" checked class="hidden">
+              <span>k = 20 (Base)</span>
+            </label>
+            <label class="atm-radio-card cursor-pointer text-center p-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:border-cyan-400 text-xs font-mono">
+              <input type="radio" name="n_neighbors" value="30" class="hidden">
+              <span>k = 30</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Contamination -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Contamination Ratio (c)
+          </label>
+          <select id="lof-contamination-select" name="contamination" class="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-400 font-mono">
+            <option value="0.01">0.01 (1% - Conservative)</option>
+            <option value="0.03" selected>0.03 (3% - Verified Baseline)</option>
+            <option value="0.05">0.05 (5% - Broad Sensitivity)</option>
+          </select>
+        </div>
+
+        <!-- Distance Metric -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Distance Metric
+          </label>
+          <select id="lof-metric-select" name="metric" class="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-400 font-mono">
+            <option value="minkowski" selected>Minkowski (Euclidean, p=2)</option>
+            <option value="manhattan">Manhattan (L1, p=1)</option>
+          </select>
+        </div>
+
+        <!-- Station Scope -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Station Scope Filter
+          </label>
+          <select id="lof-station-scope-select" class="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+            <option value="ALL" selected>All 4 Stations (Global In-Memory)</option>
+            {% for st in stations %}
+            <option value="{{ st.station_id }}">{{ st.name }} ({{ st.state }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Feature Checklist Pills -->
+      <div>
+        <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-2 font-semibold">
+          Active Modeling Features (Standard-Scaled Vector)
+        </label>
+        <div class="flex flex-wrap gap-2 text-xs font-mono" id="lof-feature-checkboxes">
+          {% for feat in feature_list %}
+          <label class="cursor-pointer px-2.5 py-1 rounded bg-[var(--bg-card)] border border-cyan-500/30 text-cyan-300 flex items-center gap-1.5 hover:bg-cyan-500/10 transition-colors">
+            <input type="checkbox" name="lof_features" value="{{ feat }}" checked class="accent-cyan-400">
+            <span>{{ feat }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[var(--border-subtle)]">
+        <div class="flex items-center gap-3">
+          <button type="button" id="run-lof-btn" onclick="executeLOF()" class="atm-btn-primary flex items-center gap-2">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>Run LOF Model</span>
+          </button>
+          <button type="button" onclick="resetLOFBaseline()" class="atm-btn-secondary flex items-center gap-2">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>Reset to Baseline (k=20)</span>
+          </button>
+        </div>
+        <span class="text-xs text-[var(--text-muted)] font-mono">
+          Batch mode (novelty=False) // Algorithm: sklearn.neighbors.LocalOutlierFactor
+        </span>
+      </div>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       4. Real Telemetry Metric Cards
+       ========================================================================= -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Analysed Records</span>
+        <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+      </div>
+      <div id="lof-stat-total" class="text-2xl sm:text-3xl font-bold font-mono text-[var(--text-primary)] mt-2">
+        {{ "{:,}".format(initial_analysis.summary.total_observations) }}
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1">4 stations &bull; 2,922 observations each</p>
+    </div>
+
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Anomalies Detected</span>
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+      </div>
+      <div id="lof-stat-anom" class="text-2xl sm:text-3xl font-bold font-mono text-amber-400 mt-2">
+        {{ initial_analysis.summary.anomalies_detected }}
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+        <span id="lof-stat-pct" class="font-bold text-[var(--text-primary)]">{{ "%.2f"|format(initial_analysis.summary.anomaly_percentage) }}%</span> local density outliers
+      </p>
+    </div>
+
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Decision Offset Threshold</span>
+        <i data-lucide="crosshair" class="w-4 h-4 text-rose-400"></i>
+      </div>
+      <div id="lof-stat-offset" class="text-2xl sm:text-3xl font-bold font-mono text-rose-400 mt-2">
+        {{ "%.4f"|format(initial_analysis.summary.offset_threshold) }}
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+        Cutoff: <span class="text-rose-300 font-bold">score &lt; offset</span> flags anomaly
+      </p>
+    </div>
+
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">NOF Score Span</span>
+        <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+      </div>
+      <div id="lof-stat-span" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-2">
+        [{{ "%.2f"|format(initial_analysis.summary.score_min) }}, {{ "%.2f"|format(initial_analysis.summary.score_max) }}]
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+        Median: <span id="lof-stat-median" class="font-bold text-cyan-400">{{ "%.4f"|format(initial_analysis.summary.score_median) }}</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. Interactive Plotly Visualizations
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- Chart 1: Negative Outlier Factor Distribution Histogram -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">Negative Outlier Factor (NOF) Distribution</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Red vertical line indicates decision offset threshold (-1.3632)</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">30 Bins</span>
+      </div>
+      <div id="lof-score-hist-chart" class="w-full h-80"></div>
+    </div>
+
+    <!-- Chart 2: Station Anomaly Distribution (Miami Contrast) -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">Station Anomaly Count (Miami Local Sensitivity)</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Notice Miami: 87 local anomalies detected due to tropical cluster density</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">Station Contrast</span>
+      </div>
+      <div id="lof-station-bar-chart" class="w-full h-80"></div>
+    </div>
+
+    <!-- Chart 3: Seasonal Anomaly Breakdown -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">Seasonal Clustering of Density Outliers</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Winter remains highest (154), but Summer/Spring anomalies also emerge</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">Seasonal Breakdown</span>
+      </div>
+      <div id="lof-season-bar-chart" class="w-full h-80"></div>
+    </div>
+
+    <!-- Chart 4: Bivariate Temperature Scatter -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">TMIN vs TMAX Density Outliers</h3>
+          <p class="text-xs text-[var(--text-secondary)]">LOF outliers plotted against local cluster neighborhoods</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">Density Space</span>
+      </div>
+      <div id="lof-temp-scatter-chart" class="w-full h-80"></div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       6. Top Suspicious Observations Table
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i>
+          <span>Top Suspicious Observations (Ranked by Lowest Negative Outlier Factor)</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Observations with largest local density divergence from their k=20 nearest neighbors. Click &ldquo;Inspect&rdquo; to analyze raw measurements.
+        </p>
+      </div>
+      <span class="text-xs font-mono px-2.5 py-1 rounded bg-[var(--bg-card)] text-amber-400 font-bold">
+        Top 20 Critical Candidates
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="font-mono uppercase text-[10px] text-[var(--text-muted)] bg-[var(--bg-card)] border-b border-[var(--border-subtle)]">
+          <tr>
+            <th class="p-2.5">Rank</th>
+            <th class="p-2.5">Date</th>
+            <th class="p-2.5">Station</th>
+            <th class="p-2.5 text-right">TMAX (&deg;C)</th>
+            <th class="p-2.5 text-right">TMIN (&deg;C)</th>
+            <th class="p-2.5 text-right">Range (&deg;C)</th>
+            <th class="p-2.5 text-right">PRCP (mm)</th>
+            <th class="p-2.5 text-right">Snow (mm)</th>
+            <th class="p-2.5 text-right">NOF Score</th>
+            <th class="p-2.5 text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody id="lof-anomalies-tbody" class="divide-y divide-[var(--border-subtle)] font-mono">
+          {% for anom in initial_analysis.top_anomalies[:20] %}
+          <tr class="hover:bg-[var(--bg-hover)] transition-colors">
+            <td class="p-2.5 font-bold text-amber-400">#{{ anom.rank }}</td>
+            <td class="p-2.5 text-[var(--text-primary)] font-bold">{{ anom.date }}</td>
+            <td class="p-2.5 text-[var(--text-secondary)] font-sans">
+              <span class="font-mono text-cyan-400 font-semibold">{{ anom.station }}</span>
+              <span class="text-[11px] block text-[var(--text-muted)]">{{ anom.station_name }}</span>
+            </td>
+            <td class="p-2.5 text-right">{{ "%.1f"|format(anom.tmax) }}</td>
+            <td class="p-2.5 text-right">{{ "%.1f"|format(anom.tmin) }}</td>
+            <td class="p-2.5 text-right text-cyan-400">{{ "%.1f"|format(anom.temp_range) }}</td>
+            <td class="p-2.5 text-right {% if anom.prcp > 25.0 %}text-amber-400 font-bold{% endif %}">{{ "%.1f"|format(anom.prcp) }}</td>
+            <td class="p-2.5 text-right {% if anom.snow > 0.0 %}text-sky-300 font-bold{% endif %}">{{ "%.1f"|format(anom.snow) }}</td>
+            <td class="p-2.5 text-right font-bold text-rose-400">{{ "%.4f"|format(anom.score) }}</td>
+            <td class="p-2.5 text-center">
+              <button onclick="inspectObservation('{{ anom.station }}', '{{ anom.date }}')" class="atm-btn-secondary px-2.5 py-1 text-[11px]">
+                Inspect
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. Parameter Sensitivity Section (k = 10, 20, 30)
+       ========================================================================= -->
+  <div id="sensitivity-section" class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="git-compare" class="w-4 h-4 text-cyan-400"></i>
+          <span>Neighborhood Parameter Sensitivity Analysis</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Evaluating Local Outlier Factor behavior across neighborhood scales k in {10, 20, 30} at constant c = 0.03.
+        </p>
+      </div>
+      <span class="text-xs font-mono px-2.5 py-1 rounded bg-[var(--bg-card)] text-cyan-400 font-bold">
+        226 Core Persistent Anomalies (64.39%)
+      </span>
+    </div>
+
+    <!-- Sensitivity Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {% for cfg in sensitivity.configurations %}
+      <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono uppercase text-cyan-400 font-bold">k = {{ cfg.k }} Neighbors</span>
+          <span class="text-xs font-mono text-[var(--text-muted)]">c = 0.03</span>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          {{ cfg.anomalies }} <span class="text-xs font-normal text-[var(--text-muted)]">anomalies ({{ cfg.pct }}%)</span>
+        </div>
+        <div class="text-[11px] font-mono text-[var(--text-secondary)] space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
+          <div>Offset Cutoff: <span class="text-rose-400">{{ cfg.offset }}</span></div>
+          <div>Min Score: <span class="text-amber-400">{{ cfg.score_min }}</span></div>
+          <div>Median Score: <span class="text-cyan-400">{{ cfg.score_median }}</span></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Neighborhood Overlap Breakdown -->
+    <div class="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200 leading-relaxed space-y-2">
+      <div class="font-bold flex items-center gap-2 text-cyan-300">
+        <i data-lucide="layers" class="w-4 h-4"></i>
+        <span>Multi-Scale Neighborhood Dynamics:</span>
+      </div>
+      <p>
+        {{ sensitivity.overlap_analysis.description }}
+      </p>
+      <div class="font-mono text-[11px] pt-1 flex flex-wrap gap-4 text-cyan-100">
+        <span>&bull; Persistent Core across all k: <strong>{{ sensitivity.overlap_analysis.common_all_three }}</strong> ({{ sensitivity.overlap_analysis.common_pct }}%)</span>
+        <span>&bull; Unique to k=10 (Micro-outliers): <strong>{{ sensitivity.overlap_analysis.unique_k10 }}</strong></span>
+        <span>&bull; Unique to k=20 (Optimal Stability): <strong>{{ sensitivity.overlap_analysis.unique_k20 }}</strong></span>
+        <span>&bull; Unique to k=30 (Macro-outliers): <strong>{{ sensitivity.overlap_analysis.unique_k30 }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Station Breakdown Table -->
+    <div>
+      <h4 class="text-xs font-mono uppercase text-[var(--text-muted)] font-semibold mb-3">
+        Station-Level LOF Outliers Across Neighborhood Sizes k
+      </h4>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="text-[10px] uppercase text-[var(--text-muted)] bg-[var(--bg-card)] border-b border-[var(--border-subtle)]">
+            <tr>
+              <th class="p-2.5">Weather Station</th>
+              <th class="p-2.5 text-right">k = 10 Count</th>
+              <th class="p-2.5 text-right">k = 20 (Baseline)</th>
+              <th class="p-2.5 text-right">k = 30 Count</th>
+              <th class="p-2.5 text-right">Baseline Anomaly Rate</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border-subtle)]">
+            {% for st_row in sensitivity.station_breakdown %}
+            <tr class="hover:bg-[var(--bg-hover)]">
+              <td class="p-2.5 font-bold text-[var(--text-primary)]">
+                {{ st_row.name }} <span class="text-[var(--text-muted)] font-normal">({{ st_row.station }})</span>
+              </td>
+              <td class="p-2.5 text-right text-cyan-400">{{ st_row.k10 }}</td>
+              <td class="p-2.5 text-right font-bold text-amber-400">{{ st_row.k20 }}</td>
+              <td class="p-2.5 text-right text-rose-400">{{ st_row.k30 }}</td>
+              <td class="p-2.5 text-right font-bold text-[var(--text-primary)]">
+                {{ "%.2f"|format(st_row.k20 / 2922.0 * 100.0) }}%
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       8. Scientific Caveats & Defense Protocol
+       ========================================================================= -->
+  <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-amber-500/20 text-xs text-[var(--text-secondary)] space-y-3">
+    <div class="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider font-mono text-[11px]">
+      <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+      <span>Academic Defense: Why LOF Detects Tropical Weather Outliers</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 leading-relaxed">
+      <p>
+        <strong>1. Local vs Global Geometry:</strong> Isolation Forest flagged only 7 anomalies in Miami because tropical temperatures lie within the global range. LOF flags 87 anomalies in Miami because Miami has a dense cluster where even minor departures (e.g. rare cool nights or storms) create low local reachability densities.
+      </p>
+      <p>
+        <strong>2. Sensitivity to Scale k:</strong> Small k focuses on micro-clusters (detecting localized variations), while larger k considers wider neighborhoods. Neither setting implies ground-truth sensor fault without physical inspection.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Include Reusable Observation Inspection Modal -->
+{% include "components/observation_modal.html" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.ATMOSPHERE_LOF_INITIAL = {{ initial_analysis|tojson }};
+  window.ATMOSPHERE_LOF_SENSITIVITY = {{ sensitivity|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/lof.js') }}"></script>
+{% endblock %}

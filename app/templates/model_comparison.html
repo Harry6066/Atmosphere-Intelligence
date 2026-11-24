@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Model Comparison Engine{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Telemetry Identity
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-normal">UNSUPERVISED LEARNING</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 07</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-cyan-400 font-bold">
+          Comparative Dual-Model Synthesis
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Model Comparison & Consensus Engine
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Cross-methodological evaluation of Isolation Forest (tree-based global partitioner) versus Local Outlier Factor (k-NN density estimator) across 11,688 multi-station observations.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+      <a href="/pca-visualization" class="atm-btn-primary">
+        <i data-lucide="orbit" class="w-4 h-4"></i>
+        <span>PCA Projections</span>
+      </a>
+      <a href="#sensitivity-grid-section" class="atm-btn-secondary">
+        <i data-lucide="table" class="w-4 h-4"></i>
+        <span>9-Cell Grid</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Executive Telemetry & Agreement Metrics
+       ========================================================================= -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+    
+    <!-- Total Observations -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>DATASET POOL</span>
+        <i data-lucide="database" class="w-3.5 h-3.5 text-cyan-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+        {{ "{:,}".format(comp_summary.total_observations) }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">4 stations &bull; 8 years</div>
+    </div>
+
+    <!-- Isolation Forest -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>IF ANOMALIES</span>
+        <i data-lucide="binary" class="w-3.5 h-3.5 text-amber-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-amber-400">
+        {{ comp_summary.if_anomalies }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1 font-mono">
+        {{ comp_summary.if_rate_pct }}% (c = 0.03)
+      </div>
+    </div>
+
+    <!-- LOF -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>LOF ANOMALIES</span>
+        <i data-lucide="scatter-chart" class="w-3.5 h-3.5 text-purple-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-purple-400">
+        {{ comp_summary.lof_anomalies }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1 font-mono">
+        {{ comp_summary.lof_rate_pct }}% (k = 20)
+      </div>
+    </div>
+
+    <!-- Consensus Intersection -->
+    <div class="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-transparent border border-red-500/30">
+      <div class="flex items-center justify-between text-xs font-mono text-red-300 mb-1">
+        <span>CONSENSUS (A &cap; B)</span>
+        <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-red-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-red-400">
+        {{ comp_summary.consensus_anomalies }}
+      </div>
+      <div class="text-[11px] text-red-300/80 mt-1 font-mono">
+        {{ comp_summary.consensus_rate_pct }}% high-severity
+      </div>
+    </div>
+
+    <!-- Binary Agreement -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>BINARY AGREEMENT</span>
+        <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-emerald-400">
+        {{ comp_summary.binary_agreement_pct }}%
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1 font-mono">
+        (11,064 + 78) / 11,688
+      </div>
+    </div>
+
+    <!-- Jaccard Similarity -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>JACCARD INDEX</span>
+        <i data-lucide="git-merge" class="w-3.5 h-3.5 text-cyan-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-cyan-400">
+        {{ comp_summary.jaccard_similarity }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1 font-mono">
+        r = +{{ comp_summary.score_correlation }}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       3. Consensus Visual Breakdown: Venn Overlap & Distribution Profiles
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Venn / Overlap Proportional Summary (5 Cols) -->
+    <div class="lg:col-span-5 p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-4">
+      <div>
+        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+          <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i>
+            <span>Set-Theoretic Partition Breakdown</span>
+          </h3>
+          <span class="text-xs font-mono text-[var(--text-muted)]">N = 11,688</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">
+          Decomposition into four strictly mutually exclusive observation subsets. While each algorithm targets a 3.00% contamination budget (351 anomalies each), their intersection yields only 78 common detections.
+        </p>
+
+        <!-- Metric Badges Row -->
+        <div class="grid grid-cols-2 gap-2 mt-3 text-xs font-mono">
+          <div class="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">
+            <span class="text-[10px] text-[var(--text-muted)] block uppercase">Anomaly Union</span>
+            <span class="font-bold">624 (5.34%)</span>
+          </div>
+          <div class="p-2 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">
+            <span class="text-[10px] text-[var(--text-muted)] block uppercase">Jaccard Similarity</span>
+            <span class="font-bold">0.125 (12.50%)</span>
+          </div>
+          <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+            <span class="text-[10px] text-[var(--text-muted)] block uppercase">Binary Agreement</span>
+            <span class="font-bold">95.33%</span>
+          </div>
+          <div class="p-2 rounded bg-slate-500/10 border border-[var(--border-subtle)] text-[var(--text-primary)]">
+            <span class="text-[10px] text-[var(--text-muted)] block uppercase">Mutually Exclusive Total</span>
+            <span class="font-bold">11,688 (100.0%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Four-Segment Stacked Bar Chart Container -->
+      <div id="chart-venn-donut" class="h-48 w-full">
+        <!-- Plotly will render here -->
+      </div>
+
+      <!-- Segment Breakdown Table with Clear Explanations -->
+      <div class="space-y-2 text-xs font-mono">
+        <div class="p-2.5 rounded bg-red-500/10 border border-red-500/20 text-red-300 space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+              <span class="font-bold">Consensus Anomaly (Both)</span>
+            </div>
+            <span class="font-bold">{{ comp_summary.consensus_anomalies }} (0.67% of total &bull; 12.50% union)</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-secondary)] font-sans">
+            <strong>Consensus</strong> = both algorithms flag the same observation.
+          </p>
+        </div>
+
+        <div class="p-2.5 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              <span class="font-bold">Isolation Forest Only</span>
+            </div>
+            <span class="font-bold">{{ comp_summary.if_only_anomalies }} (2.34% of total &bull; 43.75% union)</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-secondary)] font-sans">
+            <strong>IF-only</strong> = only Isolation Forest flags it.
+          </p>
+        </div>
+
+        <div class="p-2.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <span class="font-bold">Local Outlier Factor Only</span>
+            </div>
+            <span class="font-bold">{{ comp_summary.lof_only_anomalies }} (2.34% of total &bull; 43.75% union)</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-secondary)] font-sans">
+            <strong>LOF-only</strong> = only LOF flags it.
+          </p>
+        </div>
+
+        <div class="p-2.5 rounded bg-slate-500/10 border border-[var(--border-subtle)] text-[var(--text-muted)] space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+              <span class="font-bold text-[var(--text-primary)]">Neither Model (Normal)</span>
+            </div>
+            <span class="font-bold text-[var(--text-primary)]">{{ "{:,}".format(comp_summary.normal_both) }} (94.66% of total)</span>
+          </div>
+          <p class="text-[11px] text-[var(--text-secondary)] font-sans">
+            <strong>Neither</strong> = both algorithms classify it as normal.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparative Climatological Profiles: Station & Season (7 Cols) -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Station Breakdown Chart -->
+      <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+          <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400"></i>
+            <span>Station Anomaly Distribution Comparison</span>
+          </h3>
+          <span class="text-xs font-mono text-[var(--text-muted)]">4 NOAA Stations</span>
+        </div>
+        <div id="chart-station-comparison" class="h-60 w-full mt-3"></div>
+      </div>
+
+      <!-- Seasonal & Annual Temporal Breakdown Chart -->
+      <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i>
+            <h3 id="temporal-chart-title" class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold">
+              Seasonal Anomaly Concentration Comparison
+            </h3>
+          </div>
+          <div class="flex items-center p-0.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs font-mono">
+            <button id="btn-toggle-seasonal" class="px-2.5 py-0.5 rounded font-bold text-cyan-300 bg-cyan-500/20 transition-colors">
+              Seasonal
+            </button>
+            <button id="btn-toggle-yearly" class="px-2.5 py-0.5 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+              Annual (2016&ndash;2023)
+            </button>
+          </div>
+        </div>
+        <div id="chart-seasonal-comparison" class="h-60 w-full mt-3"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       4. Bivariate Decision Quadrant Scatter (IF Score vs LOF Score)
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="atm-badge atm-badge-normal">BIVARIATE ANALYSIS</span>
+          <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold">
+            Isolation Forest vs LOF Decision Quadrant Space
+          </h3>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Dual-axis decision landscape mapping all 624 union anomalies alongside representative normal observations. Hover points to view station data or click to inspect.
+        </p>
+      </div>
+      <div class="flex items-center gap-2 text-xs font-mono">
+        <span class="flex items-center gap-1.5 text-red-400">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Consensus (78)
+        </span>
+        <span class="flex items-center gap-1.5 text-amber-400 ml-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> IF Only (273)
+        </span>
+        <span class="flex items-center gap-1.5 text-purple-400 ml-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> LOF Only (273)
+        </span>
+      </div>
+    </div>
+
+    <!-- Scatter Chart Container -->
+    <div id="chart-score-scatter" class="h-96 w-full"></div>
+  </div>
+
+  <!-- =========================================================================
+       5. Scientific Disagreement Analysis: Why Do The Models Diverge?
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+      <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold flex items-center gap-2">
+        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
+        <span>Scientific Analysis: Why Do Isolation Forest and LOF Disagree?</span>
+      </h3>
+      <span class="text-xs font-mono text-[var(--text-muted)]">INT396 Comparative Synthesis</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[var(--text-secondary)] leading-relaxed">
+      
+      <!-- Card 1: Geometric Mechanism -->
+      <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2.5">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs">1</div>
+          <span>Geometric vs Density Topology</span>
+        </div>
+        <p>
+          <strong class="text-[var(--text-primary)]">Isolation Forest</strong> recursively cuts hyperplanes orthogonal to coordinate axes. Observations at the outer extremities of the 10-dimensional space are isolated rapidly via short paths.
+        </p>
+        <p>
+          Conversely, <strong class="text-[var(--text-primary)]">LOF</strong> operates strictly in local density ratios within <span class="font-mono text-cyan-300">k=20</span> nearest neighbors. An observation situated in a moderately sparse neighborhood can be flagged even if its absolute coordinates are near the global center.
+        </p>
+      </div>
+
+      <!-- Card 2: Climatological Driver -->
+      <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2.5">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-amber-500/20 text-amber-400 flex items-center justify-center font-mono font-bold text-xs">2</div>
+          <span>Polar Vortex vs Tropical Clusters</span>
+        </div>
+        <p>
+          During winter cold snaps in Chicago (e.g. the January 2019 Polar Vortex at -30.6&deg;C), observations become extreme across multiple dimensions (TMAX, TMIN, diurnal swing, snow depth). These trigger Isolation Forest globally (<strong class="text-amber-400">227 IF anomalies in Chicago</strong>).
+        </p>
+        <p>
+          In contrast, Miami features a compact, high-density cluster of tropical observations. A localized deviation in Miami (<strong class="text-purple-400">87 LOF anomalies vs only 7 IF</strong>) disturbs local neighbor ratios without reaching extreme outer values in global space.
+        </p>
+      </div>
+
+      <!-- Card 3: The Jaccard Paradox -->
+      <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2.5">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs">3</div>
+          <span>The Binary Agreement Paradox</span>
+        </div>
+        <p>
+          Students frequently confuse <span class="font-mono text-emerald-400">95.33% Binary Agreement</span> with model equivalence. In highly imbalanced anomaly detection (3% contamination), normal instances constitute 97% of the dataset.
+        </p>
+        <p>
+          The two algorithms agree on 11,064 normal observations:
+          <span class="block font-mono text-[10px] text-cyan-300 my-1 p-1 rounded bg-[var(--bg-surface)]">
+            Agreement = (11,064 + 78) / 11,688 = 95.33%
+          </span>
+          However, among candidate anomalies, the <strong class="text-cyan-400">Jaccard index is only 0.1250</strong> (78 / 624). This confirms they capture orthogonal physical characteristics of weather deviations.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. Filterable Observation Comparison Table
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold flex items-center gap-2">
+          <i data-lucide="table-properties" class="w-4 h-4 text-cyan-400"></i>
+          <span>Multi-Station Observation Comparison Ledger</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Audit individual observations across both model decisions with full meteorological telemetry.
+        </p>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="flex items-center gap-2 flex-wrap text-xs">
+        <!-- Status Filter -->
+        <select id="filter-status" class="atm-select text-xs py-1.5">
+          <option value="">All Statuses</option>
+          <option value="Consensus" selected>Consensus (Both)</option>
+          <option value="IF_Only">IF Only</option>
+          <option value="LOF_Only">LOF Only</option>
+          <option value="Normal">Normal Both</option>
+        </select>
+
+        <!-- Station Filter -->
+        <select id="filter-station" class="atm-select text-xs py-1.5">
+          <option value="">All Stations</option>
+          {% for st in stations %}
+          <option value="{{ st.station_id }}">{{ st.name }}</option>
+          {% endfor %}
+        </select>
+
+        <!-- Season Filter -->
+        <select id="filter-season" class="atm-select text-xs py-1.5">
+          <option value="">All Seasons</option>
+          <option value="Winter">Winter</option>
+          <option value="Spring">Spring</option>
+          <option value="Summer">Summer</option>
+          <option value="Fall">Fall</option>
+        </select>
+
+        <!-- Year Filter -->
+        <select id="filter-year" class="atm-select text-xs py-1.5">
+          <option value="">All Years</option>
+          {% for y in range(2016, 2024) %}
+          <option value="{{ y }}">{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
+      <table class="w-full text-left text-xs text-[var(--text-secondary)] border-collapse">
+        <thead class="bg-[var(--bg-card)] border-b border-[var(--border-subtle)] font-mono text-[11px] text-[var(--text-muted)] uppercase">
+          <tr>
+            <th class="py-3 px-3">Station</th>
+            <th class="py-3 px-3">Date</th>
+            <th class="py-3 px-3 text-right">TMAX</th>
+            <th class="py-3 px-3 text-right">TMIN</th>
+            <th class="py-3 px-3 text-right">PRCP</th>
+            <th class="py-3 px-3 text-right">SNOW</th>
+            <th class="py-3 px-3 text-center">IF Decision</th>
+            <th class="py-3 px-3 text-center">LOF Decision</th>
+            <th class="py-3 px-3 text-center">Consensus</th>
+            <th class="py-3 px-3 text-right">IF Score</th>
+            <th class="py-3 px-3 text-right">LOF Score</th>
+            <th class="py-3 px-3 text-center">Inspect</th>
+          </tr>
+        </thead>
+        <tbody id="comparison-table-body" class="divide-y divide-[var(--border-subtle)] font-mono">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Pagination & Footer -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-2">
+      <div id="table-summary-info" class="text-[var(--text-muted)] font-mono">
+        Showing observations...
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-prev-page" class="atm-btn-secondary py-1 px-3 text-xs" disabled>
+          <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+          <span>Prev</span>
+        </button>
+        <span id="page-indicator" class="font-mono text-[var(--text-primary)] px-2">Page 1</span>
+        <button id="btn-next-page" class="atm-btn-secondary py-1 px-3 text-xs">
+          <span>Next</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. 9-Cell Cross-Parameter Sensitivity Grid
+       ========================================================================= -->
+  <div id="sensitivity-grid-section" class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="atm-badge atm-badge-normal">HYPERPARAMETER SENSITIVITY</span>
+          <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold">
+            9-Cell Cross-Parameter Sensitivity Matrix
+          </h3>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Systematic sensitivity analysis evaluating 3 Contamination levels (0.01, 0.03, 0.05) across 3 LOF Neighborhood sizes (k = 10, 20, 30).
+        </p>
+      </div>
+      <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/20">
+        Baseline: c = 0.03, k = 20
+      </span>
+    </div>
+
+    <!-- Sensitivity Grid Table -->
+    <div class="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
+      <table class="w-full text-left text-xs text-[var(--text-secondary)] border-collapse">
+        <thead class="bg-[var(--bg-card)] border-b border-[var(--border-subtle)] font-mono text-[11px] text-[var(--text-muted)] uppercase">
+          <tr>
+            <th class="py-3 px-4">Contamination (c)</th>
+            <th class="py-3 px-4">LOF Neighbors (k)</th>
+            <th class="py-3 px-4 text-right">IF Anomalies</th>
+            <th class="py-3 px-4 text-right">LOF Anomalies</th>
+            <th class="py-3 px-4 text-right text-red-300">Consensus (A &cap; B)</th>
+            <th class="py-3 px-4 text-right text-cyan-300">Jaccard Index</th>
+            <th class="py-3 px-4 text-right text-emerald-300">Binary Agreement</th>
+            <th class="py-3 px-4 text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--border-subtle)] font-mono">
+          {% for row in sensitivity_grid %}
+          <tr class="hover:bg-[var(--bg-card-hover)] transition-colors {% if row.contamination == 0.03 and row.n_neighbors == 20 %}bg-cyan-500/10 font-bold{% endif %}">
+            <td class="py-3 px-4 text-[var(--text-primary)]">{{ row.contamination }}</td>
+            <td class="py-3 px-4 text-[var(--text-primary)]">{{ row.n_neighbors }}</td>
+            <td class="py-3 px-4 text-right text-amber-400">{{ row.if_anomalies }}</td>
+            <td class="py-3 px-4 text-right text-purple-400">{{ row.lof_anomalies }}</td>
+            <td class="py-3 px-4 text-right font-bold text-red-400">{{ row.consensus_anomalies }}</td>
+            <td class="py-3 px-4 text-right font-bold text-cyan-400">{{ row.jaccard_similarity }}</td>
+            <td class="py-3 px-4 text-right text-emerald-400">{{ row.agreement_rate_pct }}%</td>
+            <td class="py-3 px-4 text-center">
+              {% if row.contamination == 0.03 and row.n_neighbors == 20 %}
+              <span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">BASELINE</span>
+              {% else %}
+              <span class="text-[10px] text-[var(--text-muted)]">Exploratory</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="p-3.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] leading-relaxed">
+      <strong class="text-[var(--text-primary)]">Methodological Observation:</strong> Across all 9 parameter configurations, the Jaccard similarity remains within <span class="font-mono text-cyan-300">0.0526 &ndash; 0.1746</span>, confirming that algorithm divergence is structurally intrinsic to their mathematical formulations, rather than an artifact of hyperparameter selection.
+    </div>
+  </div>
+
+</div>
+
+<!-- Scientific Observation Modal Component -->
+{% include "components/observation_modal.html" %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/model_comparison.js') }}"></script>
+{% endblock %}
+

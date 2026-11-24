@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Data Quality &amp; Preprocessing{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Quality Assurance Certification
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-normal">QUALITY CONTROL</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 04</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-emerald-400 font-bold">
+          100% Passed Physical Sanity Audits
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Data Quality &amp; Preprocessing Pipeline
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Comprehensive meteorological sanity audits, NOAA sentinel decoding (-9999), trace precipitation handling, physical constraint validation (TMIN &le; TMAX), domain feature engineering, and zero-mean standardization.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="/isolation-forest" class="atm-btn-primary">
+        <i data-lucide="git-branch" class="w-4 h-4"></i>
+        <span>Anomaly Models</span>
+      </a>
+      <a href="/eda" class="atm-btn-secondary">
+        <i data-lucide="line-chart" class="w-4 h-4"></i>
+        <span>EDA Analysis</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Raw vs Processed Dataset Audit Telemetry
+       ========================================================================= -->
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold flex items-center gap-2">
+        <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+        <span>Raw Dataset Audit &amp; Transformation Scope</span>
+      </h2>
+      <span class="text-xs font-mono text-[var(--text-muted)]">N = 11,688 Observations (4 Stations &times; 2,922 Days)</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Raw Records & Dimension -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Raw Ingestion</span>
+          <i data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          11,688 Records
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          17 raw NOAA columns (tenths of °C and tenths of mm).
+        </p>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)]">
+          Raw File: <code>ghcnd_raw_combined.csv</code>
+        </div>
+      </div>
+
+      <!-- Sentinel Values -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Sentinel Treatment</span>
+          <i data-lucide="code" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-emerald-400">
+          -9999 Handled
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Replaced with NaN before forward-fill station imputation.
+        </p>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono text-emerald-400">
+          0 Raw Sentinels Leaked to Models
+        </div>
+      </div>
+
+      <!-- Station Coverage -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Station Coverage</span>
+          <i data-lucide="check-check" class="w-4 h-4 text-cyan-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          100.0% Coverage
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          4 stations &times; 2,922 days (2016–2023, 8 complete years).
+        </p>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono text-cyan-400">
+          0 Missing Observation Dates
+        </div>
+      </div>
+
+      <!-- Processed Dimension -->
+      <div class="atm-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Model-Ready Output</span>
+          <i data-lucide="cpu" class="w-4 h-4 text-violet-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-violet-400">
+          68 Features
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          10 scaled features + PCA coordinates + model scores.
+        </p>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)]">
+          Output: <code>ghcnd_processed.csv</code>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. Preprocessing Workflow Visual Pipeline (7 Stages)
+       ========================================================================= -->
+  <div class="atm-card p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="workflow" class="w-4 h-4 text-cyan-400"></i>
+          <span>7-Stage Data Preprocessing &amp; Transformation Workflow</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Step-by-step transformation from raw NOAA integer records into standardized numerical feature spaces.
+        </p>
+      </div>
+      <span class="atm-badge atm-badge-normal">Fully Automated &amp; Verified</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      
+      <!-- Stage 1 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-cyan-400 font-bold block mb-1">01 / INGEST</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">Raw NOAA CSV</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Parse 4 station files: 11,688 rows, 17 columns.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          Input: Integers
+        </div>
+      </div>
+
+      <!-- Stage 2 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-cyan-400 font-bold block mb-1">02 / SENTINEL</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">Sentinel Filter</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Replace -9999 values with IEEE NaN floats.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-emerald-400">
+          Cleaned Sentinels
+        </div>
+      </div>
+
+      <!-- Stage 3 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-cyan-400 font-bold block mb-1">03 / DECODE</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">Unit Decoding</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Divide TMAX, TMIN, PRCP by 10.0 (°C &amp; mm).
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          Output: SI Units
+        </div>
+      </div>
+
+      <!-- Stage 4 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-cyan-400 font-bold block mb-1">04 / AUDIT</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">Physical Sanity</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Check TMIN &le; TMAX, PRCP &ge; 0, QFLAG = blank.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-emerald-400">
+          0 Violations
+        </div>
+      </div>
+
+      <!-- Stage 5 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-cyan-400 font-bold block mb-1">05 / IMPUTE</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">Imputation</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Snow/PRCP missing &rarr; 0.0; rolling temporal ffill/bfill.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)]">
+          0.0% Missing
+        </div>
+      </div>
+
+      <!-- Stage 6 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-cyan-500/30 flex flex-col justify-between shadow-[0_0_15px_rgba(0,212,255,0.08)]">
+        <div>
+          <span class="text-[10px] font-mono text-cyan-400 font-bold block mb-1">06 / FEATURES</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">Feature Eng</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Diurnal range, temporal rate-of-change, cyclical DOY.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-cyan-400 font-bold">
+          10 Model Features
+        </div>
+      </div>
+
+      <!-- Stage 7 -->
+      <div class="p-3.5 rounded-lg bg-[var(--bg-surface)] border border-violet-500/30 flex flex-col justify-between shadow-[0_0_15px_rgba(129,140,248,0.08)]">
+        <div>
+          <span class="text-[10px] font-mono text-violet-400 font-bold block mb-1">07 / SCALE</span>
+          <div class="text-xs font-bold text-[var(--text-primary)] mb-1">StandardScaler</div>
+          <p class="text-[11px] text-[var(--text-muted)] leading-tight">
+            Transform to &mu;=0.0, &sigma;=1.0 for IF, LOF &amp; PCA.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-violet-400 font-bold">
+          Distance Preserved
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. Physical Consistency Checks & NOAA Quality Flags
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Physical Consistency Checks Table -->
+    <div class="lg:col-span-7 atm-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
+            <span>Physical Consistency Sanity Checks</span>
+          </h3>
+          <span class="atm-badge atm-badge-normal">0 Rule Violations</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-4">
+          Atmospheric laws and bounds testing performed across all 11,688 daily observations.
+        </p>
+
+        <div class="overflow-x-auto">
+          <table class="atm-table text-xs">
+            <thead>
+              <tr>
+                <th>Physical Law / Constraint</th>
+                <th>Meteorological Description</th>
+                <th>Observed Violations</th>
+                <th>Audit Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for check in audit.physical_consistency_checks %}
+              <tr>
+                <td class="font-mono font-bold text-cyan-400">{{ check.rule }}</td>
+                <td class="text-[var(--text-secondary)]">{{ check.description }}</td>
+                <td class="font-mono font-bold text-emerald-400">{{ check.violations_found }}</td>
+                <td>
+                  <span class="atm-badge atm-badge-normal text-[10px]">{{ check.status }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)] leading-relaxed">
+        <strong>Preservation Policy:</strong> In our unsupervised methodology, if a physical rule violation were detected (e.g. inverted temperatures), it would NOT be silently discarded. Instead, it would be flagged as an automated physical failure benchmark to verify whether Isolation Forest and LOF detect it.
+      </div>
+    </div>
+
+    <!-- NOAA Flags Audit: Measurement vs Quality -->
+    <div class="lg:col-span-5 atm-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="flag" class="w-4 h-4 text-cyan-400"></i>
+            <span>NOAA Quality &amp; Measurement Flags</span>
+          </h3>
+          <span class="text-xs font-mono text-[var(--text-muted)]">GHCN-Daily</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-4">
+          Detailed audit of raw metadata flags attached to observational values.
+        </p>
+
+        <div class="space-y-3 text-xs font-mono">
+          <div class="p-3 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[var(--text-muted)] uppercase text-[10px]">Quality Flags (QFLAG)</span>
+              <span class="atm-badge atm-badge-normal text-[10px]">0 Failed Flags</span>
+            </div>
+            <div class="text-[11px] text-[var(--text-secondary)] font-sans">
+              All 11,688 records have blank QFLAGs. Confirms data successfully passed internal NOAA quality algorithms (gap checks, climatological bounds, spatial buddy checks).
+            </div>
+          </div>
+
+          <div class="p-3 rounded bg-[var(--bg-surface)] border border-cyan-500/30">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[var(--text-muted)] uppercase text-[10px]">Trace Precipitation ('T')</span>
+              <span class="text-cyan-400 font-bold">1,352 Days</span>
+            </div>
+            <div class="text-[11px] text-[var(--text-secondary)] font-sans">
+              Representing precipitation accumulation &lt; 0.1 mm (e.g. brief drizzle). Encoded numerically as 0.0 mm while retaining the 'T' flag in <code>PRCP_MFLAG</code> for meteorological tracking.
+            </div>
+          </div>
+
+          <div class="p-3 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[var(--text-muted)] uppercase text-[10px]">Source Reporting Flags (SFLAG)</span>
+              <span class="text-[var(--text-primary)] font-bold">Official ASOS / NWS</span>
+            </div>
+            <div class="text-[11px] text-[var(--text-secondary)] font-sans">
+              Data originates from primary automated airport weather stations (ASOS) and historical first-order stations with calibrated digital sensors.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-2 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)]">
+        *Trace observations represent 11.57% of total monitored days.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       5. Climatological Feature Engineering Catalog (8 Features)
+       ========================================================================= -->
+  <div class="atm-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+        <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
+        <span>Engineered Weather Features Rationale &amp; Mathematical Formulation</span>
+      </h3>
+      <span class="atm-badge atm-badge-cyan">8 Domain Features</span>
+    </div>
+    <p class="text-xs text-[var(--text-secondary)] mb-4">
+      Physical weather metrics, temporal differencing rates, and cyclical trigonometric transformations designed to capture multivariate atmospheric behavior.
+    </p>
+
+    <div class="overflow-x-auto">
+      <table class="atm-table text-xs">
+        <thead>
+          <tr>
+            <th>Feature Name</th>
+            <th>Mathematical Formula</th>
+            <th>Physical Unit</th>
+            <th>Feature Classification</th>
+            <th>Domain Modeling Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for feat in features %}
+          <tr>
+            <td class="font-mono font-bold text-cyan-400">{{ feat.feature }}</td>
+            <td class="font-mono text-emerald-400 font-semibold">{{ feat.formula }}</td>
+            <td class="font-mono text-[var(--text-muted)]">{{ feat.unit }}</td>
+            <td>
+              <span class="atm-badge {% if 'Physical' in feat.type %}atm-badge-cyan{% elif 'Temporal' in feat.type %}atm-badge-normal{% else %}bg-violet-900/40 text-violet-300 border border-violet-500/30{% endif %} text-[10px]">
+                {{ feat.type }}
+              </span>
+            </td>
+            <td class="text-[var(--text-secondary)] leading-relaxed">{{ feat.purpose }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. Feature Scaling Verification Table (StandardScaler Before & After)
+       ========================================================================= -->
+  <div class="atm-card p-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+      <div>
+        <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="scale" class="w-4 h-4 text-violet-400"></i>
+          <span>Feature Scaling Audit: Raw vs. Standardized Numerical Distributions</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          StandardScaler normalization: \(z = \frac{x - \mu}{\sigma}\). Transforms diverse physical units into a standardized zero-mean, unit-variance space.
+        </p>
+      </div>
+      <span class="atm-badge atm-badge-normal">10 Modeling Features Scaled</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="atm-table text-xs font-mono">
+        <thead>
+          <tr>
+            <th rowspan="2" class="align-bottom pb-2">Feature</th>
+            <th colspan="4" class="text-center py-1.5 border-b border-[var(--border-subtle)] text-cyan-400">Original Raw Physical Space</th>
+            <th colspan="4" class="text-center py-1.5 border-b border-[var(--border-subtle)] text-violet-400">Model-Ready Standardized Space (z-score)</th>
+          </tr>
+          <tr>
+            <th>Raw Mean (&mu;)</th>
+            <th>Raw Std (&sigma;)</th>
+            <th>Raw Min</th>
+            <th>Raw Max</th>
+            <th>Scaled Mean</th>
+            <th>Scaled Std</th>
+            <th>Scaled Min</th>
+            <th>Scaled Max</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in scaling.comparison_table %}
+          <tr>
+            <td class="font-bold text-[var(--text-primary)]">{{ row.feature }}</td>
+            <td>{{ row.raw_mean }}</td>
+            <td>{{ row.raw_std }}</td>
+            <td>{{ row.raw_min }}</td>
+            <td>{{ row.raw_max }}</td>
+            <td class="text-emerald-400 font-bold">{{ row.scaled_mean }}</td>
+            <td class="text-emerald-400 font-bold">{{ row.scaled_std }}</td>
+            <td class="text-violet-300">{{ row.scaled_min }}</td>
+            <td class="text-violet-300">{{ row.scaled_max }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 p-3 rounded bg-sky-950/20 border border-sky-500/20 text-xs text-sky-200 leading-relaxed">
+      <strong>Why StandardScaler was Selected:</strong> Local Outlier Factor (LOF) relies on Euclidean distances, and PCA maximizes variance along orthogonal axes. Without scaling, variables with large absolute ranges (e.g. SNWD up to 660 mm) would completely overwhelm temperature features (ranges of ~40°C), introducing massive dimensional distortion. StandardScaler guarantees equal geometric weighting across all 10 feature axes.
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. Scientific Data Quality Interpretation Panel
+       ========================================================================= -->
+  <div class="atm-card p-6">
+    <div class="flex items-center gap-2.5 mb-4">
+      <div class="p-2 rounded-lg bg-[var(--bg-surface)] text-cyan-400">
+        <i data-lucide="microscope" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)]">Scientific Interpretation: The Limits of Preprocessing</h3>
+        <p class="text-xs text-[var(--text-secondary)]">Crucial academic distinctions between clean data formatting and ground-truth sensor accuracy.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+      
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-cyan-400">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Clean != Accurate</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          A dataset with 0.0% missingness and zero physical rule violations is clean in format, but NOT guaranteed to be free of faulty readings. Subtle sensor drift (+3°C calibration error) or micro-site thermal biases easily pass coarse physical boundary checks.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-emerald-400">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Never Prune Extremes</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          Standard data cleaning in generic data science often trims or clips the top 1% of outliers. In weather anomaly detection, doing so would erase the exact target events (e.g. Polar Vortex or Heat Domes) that unsupervised models must evaluate.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-amber-400">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Trace Precipitation</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          The 1,352 trace precipitation days represent genuine sub-millimeter condensation. Conflating trace with missing data corrupts rain occurrence rates, while setting trace to large values distorts annual precipitation totals.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <div class="flex items-center gap-2 mb-2 text-violet-400">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          <span class="text-xs font-bold uppercase tracking-wider">Preprocessing Bias</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+          Every preprocessing decision introduces an inductive bias. For instance, forward-filling temperatures preserves autocorrelation, while standard scaling implicitly assumes Gaussian-like distributions for distance calculations.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

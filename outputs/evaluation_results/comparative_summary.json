@@ -1,0 +1,19 @@
+{
+  "baseline_comparison": {
+    "total_observations": 11688,
+    "anomalies_a": 351,
+    "anomalies_b": 351,
+    "common_anomalies": 78,
+    "only_a_anomalies": 273,
+    "only_b_anomalies": 273,
+    "total_union_anomalies": 624,
+    "agreement_percentage": 95.33,
+    "jaccard_similarity": 0.125
+  },
+  "consensus_counts": {
+    "Normal": 11064,
+    "LOF Only": 273,
+    "IF Only": 273,
+    "Consensus Anomaly": 78
+  }
+}

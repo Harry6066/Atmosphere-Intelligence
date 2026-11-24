@@ -1,0 +1,41 @@
+{
+  "neighbors_10": {
+    "n_neighbors": 10,
+    "contamination": 0.03,
+    "novelty": false,
+    "total_observations": 11688,
+    "anomalies_detected": 351,
+    "normal_observations": 11337,
+    "anomaly_percentage": 3.0,
+    "min_score": -6.1228684418567445,
+    "median_score": -1.0441872449122376,
+    "max_score": -0.9374543098971346,
+    "offset_threshold": -1.3558568320078326
+  },
+  "neighbors_20": {
+    "n_neighbors": 20,
+    "contamination": 0.03,
+    "novelty": false,
+    "total_observations": 11688,
+    "anomalies_detected": 351,
+    "normal_observations": 11337,
+    "anomaly_percentage": 3.0,
+    "min_score": -6.028268041680504,
+    "median_score": -1.047247550906881,
+    "max_score": -0.9524003364864815,
+    "offset_threshold": -1.363152965714471
+  },
+  "neighbors_30": {
+    "n_neighbors": 30,
+    "contamination": 0.03,
+    "novelty": false,
+    "total_observations": 11688,
+    "anomalies_detected": 351,
+    "normal_observations": 11337,
+    "anomaly_percentage": 3.0,
+    "min_score": -6.205696003887234,
+    "median_score": -1.049966270439196,
+    "max_score": -0.9474136979447068,
+    "offset_threshold": -1.3769523973461517
+  }
+}

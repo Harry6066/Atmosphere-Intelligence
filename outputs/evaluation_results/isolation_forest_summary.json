@@ -1,0 +1,41 @@
+{
+  "contamination_0.01": {
+    "contamination": 0.01,
+    "n_estimators": 100,
+    "random_state": 42,
+    "total_observations": 11688,
+    "anomalies_detected": 117,
+    "normal_observations": 11571,
+    "anomaly_percentage": 1.0,
+    "min_score": -0.13611420324470735,
+    "median_score": 0.20061103315359646,
+    "max_score": 0.24514696899210525,
+    "score_threshold_zero": 0.0
+  },
+  "contamination_0.03": {
+    "contamination": 0.03,
+    "n_estimators": 100,
+    "random_state": 42,
+    "total_observations": 11688,
+    "anomalies_detected": 351,
+    "normal_observations": 11337,
+    "anomaly_percentage": 3.0,
+    "min_score": -0.20434987468396493,
+    "median_score": 0.1323753617143389,
+    "max_score": 0.17691129755284768,
+    "score_threshold_zero": 0.0
+  },
+  "contamination_0.05": {
+    "contamination": 0.05,
+    "n_estimators": 100,
+    "random_state": 42,
+    "total_observations": 11688,
+    "anomalies_detected": 585,
+    "normal_observations": 11103,
+    "anomaly_percentage": 5.01,
+    "min_score": -0.2367748285372273,
+    "median_score": 0.0999504078610765,
+    "max_score": 0.1444863436995853,
+    "score_threshold_zero": 0.0
+  }
+}

@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Scientific Insights & Methodological Limitations{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Scientific Identity
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-normal">SCIENTIFIC VALIDATION</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 10</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-cyan-400 font-bold">
+          INT396 / SIH26073 Final Synthesis
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Scientific Insights & Methodological Limitations
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Comprehensive scientific evaluation of unsupervised anomaly detection across NOAA weather station networks: mathematical divergence, geographical and seasonal bias quantification, operational risk analysis, and responsible AI governance.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+      <a href="/anomaly-investigation" class="atm-btn-secondary">
+        <i data-lucide="search-check" class="w-4 h-4"></i>
+        <span>Investigation Queue</span>
+      </a>
+      <a href="/model-comparison" class="atm-btn-secondary">
+        <i data-lucide="git-compare" class="w-4 h-4"></i>
+        <span>Model Comparison</span>
+      </a>
+      <a href="/pca-visualization" class="atm-btn-secondary">
+        <i data-lucide="orbit" class="w-4 h-4"></i>
+        <span>PCA Projections</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Executive Scientific Baseline Telemetry
+       ========================================================================= -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+    
+    <!-- Observations -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">OBSERVATIONS</div>
+      <div class="text-xl font-bold font-mono text-[var(--text-primary)]">
+        {{ "{:,}".format(summary.baseline_metrics.total_observations) }}
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">4 stations &bull; 8 yrs</div>
+    </div>
+
+    <!-- IF Anomalies -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">IF ANOMALIES</div>
+      <div class="text-xl font-bold font-mono text-cyan-400">
+        {{ summary.baseline_metrics.if_anomalies }}
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">{{ summary.baseline_metrics.if_rate_pct }}% of total</div>
+    </div>
+
+    <!-- LOF Anomalies -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">LOF ANOMALIES</div>
+      <div class="text-xl font-bold font-mono text-amber-400">
+        {{ summary.baseline_metrics.lof_anomalies }}
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">{{ summary.baseline_metrics.lof_rate_pct }}% (k=20)</div>
+    </div>
+
+    <!-- Consensus -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] ring-1 ring-purple-500/30">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">CONSENSUS</div>
+      <div class="text-xl font-bold font-mono text-purple-400">
+        {{ summary.baseline_metrics.consensus_anomalies }}
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">{{ summary.baseline_metrics.consensus_rate_pct }}% agreed</div>
+    </div>
+
+    <!-- Binary Agreement -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">BINARY AGREE</div>
+      <div class="text-xl font-bold font-mono text-emerald-400">
+        {{ summary.baseline_metrics.binary_agreement_pct }}%
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">11,142 / 11,688</div>
+    </div>
+
+    <!-- Jaccard Similarity -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">JACCARD INDEX</div>
+      <div class="text-xl font-bold font-mono text-rose-400">
+        {{ summary.baseline_metrics.jaccard_similarity }}
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">12.5% overlap</div>
+    </div>
+
+    <!-- PCA 2D Variance -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">PCA 2D VAR</div>
+      <div class="text-xl font-bold font-mono text-cyan-300">
+        {{ summary.baseline_metrics.pca_2d_variance_pct }}%
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">PC1 + PC2</div>
+    </div>
+
+    <!-- PCA 3D Variance -->
+    <div class="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="text-[10px] font-mono text-[var(--text-muted)] uppercase mb-1">PCA 3D VAR</div>
+      <div class="text-xl font-bold font-mono text-blue-400">
+        {{ summary.baseline_metrics.pca_3d_variance_pct }}%
+      </div>
+      <div class="text-[10px] text-[var(--text-secondary)] mt-0.5">PC1 to PC3</div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       3. Main Findings & The Jaccard Paradox
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Card 1: Jaccard Paradox -->
+    <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center gap-2.5">
+        <div class="p-2 rounded-lg bg-rose-500/10 text-rose-400">
+          <i data-lucide="split" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--text-primary)]">The Jaccard Paradox</h3>
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+        While overall binary classification agreement appears deceptively high at <strong>95.33%</strong>, this figure is dominated entirely by the shared identification of normal weather days (11,064 shared inliers).
+      </p>
+      <div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-xs font-mono space-y-1">
+        <div class="flex justify-between">
+          <span class="text-[var(--text-muted)]">Total Union Anomalies:</span>
+          <span class="text-rose-400 font-bold">624 days</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-[var(--text-muted)]">Consensus Overlap:</span>
+          <span class="text-purple-400 font-bold">78 days</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-[var(--text-muted)]">Jaccard Overlap Ratio:</span>
+          <span class="text-rose-400 font-bold">78 / 624 = 12.50%</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-[var(--text-muted)] leading-relaxed">
+        This mathematical divergence confirms that Isolation Forest and LOF probe fundamentally distinct topological properties of the meteorological feature space.
+      </p>
+    </div>
+
+    <!-- Card 2: Global vs Local Geometry -->
+    <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center gap-2.5">
+        <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
+          <i data-lucide="git-fork" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--text-primary)]">Global vs Local Detection</h3>
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+        <strong>Isolation Forest</strong> operates globally through recursive orthogonal hyper-planes. Points that lie far from the multivariate center (e.g. subzero blizzards with heavy snow) require few splits and receive extreme negative scores.
+      </p>
+      <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+        <strong>Local Outlier Factor (LOF)</strong> calculates the local reachability density against $k=20$ nearest neighbors. An observation can have moderate absolute values yet be strongly anomalous if located in a sparse region between dense clusters.
+      </p>
+      <div class="p-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/20 text-[11px] text-cyan-300">
+        Example: The 2021 Pacific Northwest Heat Dome (42.2°C in Seattle) was captured by LOF (3 of 3 days) but missed by IF (0 of 3 days) because Seattle's maritime distribution is locally tight.
+      </div>
+    </div>
+
+    <!-- Card 3: Consensus Utility for Triage -->
+    <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center gap-2.5">
+        <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--text-primary)]">Consensus Triage Utility</h3>
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+        Because unsupervised models lack ground-truth fault labels, manual domain inspection is expensive. Enforcing a <strong>Dual-Model Consensus</strong> reduces review workload by <strong>77.8%</strong> (from 351 down to 78 observations).
+      </p>
+      <div class="space-y-1.5 text-xs font-mono">
+        <div class="p-2 rounded bg-[var(--bg-app)] border border-[var(--border-subtle)] flex justify-between">
+          <span>Tier 1 (Consensus):</span>
+          <span class="text-purple-400 font-bold">78 Days (Immediate Triage)</span>
+        </div>
+        <div class="p-2 rounded bg-[var(--bg-app)] border border-[var(--border-subtle)] flex justify-between">
+          <span>Tier 2 (Single-Model):</span>
+          <span class="text-amber-400 font-bold">546 Days (Secondary Audit)</span>
+        </div>
+        <div class="p-2 rounded bg-[var(--bg-app)] border border-[var(--border-subtle)] flex justify-between">
+          <span>Tier 3 (Inliers):</span>
+          <span class="text-emerald-400 font-bold">11,064 Days (Standard Record)</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-[var(--text-muted)] leading-relaxed">
+        Combined ranking via the Severity Index allows meteorologists to inspect the most extreme dual outliers first.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       4. Geographical Station Bias Analysis
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border-subtle)]">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="map-pin" class="w-5 h-5 text-cyan-400"></i>
+          Geographical Station Bias Quantification
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Analysis of detection rate disparity across stations. Models trained on pooled multi-station data reflect regional climatological variance rather than physical instrument failure frequency.
+        </p>
+      </div>
+      <span class="text-xs font-mono px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        Disparity Ratio: {{ station_bias.max_disparity_ratio }}
+      </span>
+    </div>
+
+    <!-- Chart & Table Split -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Interactive Plotly Chart -->
+      <div class="lg:col-span-5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] p-3">
+        <div class="text-xs font-mono text-[var(--text-muted)] mb-2 flex justify-between">
+          <span>STATION DETECTION RATES</span>
+          <span>IF vs LOF vs Consensus</span>
+        </div>
+        <div id="chart-station-bias" class="w-full h-72"></div>
+      </div>
+
+      <!-- Detailed Breakdown Table with Explicit Denominators -->
+      <div class="lg:col-span-7 overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-[var(--border-subtle)] text-[var(--text-muted)] font-mono uppercase text-[11px]">
+              <th class="py-2.5 px-3">Station & Climate Zone</th>
+              <th class="py-2.5 px-3 text-right">IF Anomalies (Rate)</th>
+              <th class="py-2.5 px-3 text-right">LOF Anomalies (Rate)</th>
+              <th class="py-2.5 px-3 text-right">Consensus (Rate)</th>
+              <th class="py-2.5 px-3">Climatological Driver</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border-subtle)] text-[var(--text-primary)]">
+            {% for st in station_bias.stations %}
+            <tr class="hover:bg-[var(--bg-card-hover)] transition-colors">
+              <td class="py-3 px-3">
+                <span class="font-bold text-[var(--text-primary)]">{{ st.short_name }}</span>
+                <span class="block text-[10px] font-mono text-cyan-400">{{ st.station_id }} &bull; Elev: {{ st.elevation_m }}m</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ st.climate_zone }}</span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <span class="font-bold text-cyan-400">{{ st.if_anomalies }}</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ st.if_fraction_str }}</span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <span class="font-bold text-amber-400">{{ st.lof_anomalies }}</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ st.lof_fraction_str }}</span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <span class="font-bold text-purple-400">{{ st.consensus_anomalies }}</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ st.consensus_fraction_str }}</span>
+              </td>
+              <td class="py-3 px-3 text-[11px] text-[var(--text-secondary)] max-w-xs leading-relaxed">
+                {{ st.scientific_explanation }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="mt-4 p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
+          <strong class="text-[var(--text-primary)]">Scientific Takeaway:</strong> {{ station_bias.sample_limitation }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. Seasonal Variance Bias Analysis
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border-subtle)]">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="cloud-snow" class="w-5 h-5 text-cyan-400"></i>
+          Seasonal Variance Bias Quantification
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Comparison of anomaly detection frequency across calendar seasons. Asymmetric right tails in winter snowfall and extreme cold drive severe seasonal concentration.
+        </p>
+      </div>
+      <span class="text-xs font-mono px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        Disparity Ratio: {{ seasonal_bias.winter_summer_ratio }}
+      </span>
+    </div>
+
+    <!-- Chart & Table Split -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Interactive Plotly Chart -->
+      <div class="lg:col-span-5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] p-3">
+        <div class="text-xs font-mono text-[var(--text-muted)] mb-2 flex justify-between">
+          <span>SEASONAL DETECTION RATES</span>
+          <span>IF vs LOF vs Consensus</span>
+        </div>
+        <div id="chart-seasonal-bias" class="w-full h-72"></div>
+      </div>
+
+      <!-- Detailed Breakdown Table with Explicit Denominators -->
+      <div class="lg:col-span-7 overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-[var(--border-subtle)] text-[var(--text-muted)] font-mono uppercase text-[11px]">
+              <th class="py-2.5 px-3">Season</th>
+              <th class="py-2.5 px-3 text-right">IF Anomalies (Rate)</th>
+              <th class="py-2.5 px-3 text-right">LOF Anomalies (Rate)</th>
+              <th class="py-2.5 px-3 text-right">Consensus (Rate)</th>
+              <th class="py-2.5 px-3">Meteorological Driver</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border-subtle)] text-[var(--text-primary)]">
+            {% for se in seasonal_bias.seasons %}
+            <tr class="hover:bg-[var(--bg-card-hover)] transition-colors">
+              <td class="py-3 px-3">
+                <span class="font-bold text-[var(--text-primary)]">{{ se.season_name }}</span>
+                <span class="block text-[10px] font-mono text-[var(--text-muted)]">{{ se.total_records }} observations</span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <span class="font-bold text-cyan-400">{{ se.if_anomalies }}</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ se.if_fraction_str }}</span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <span class="font-bold text-amber-400">{{ se.lof_anomalies }}</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ se.lof_fraction_str }}</span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <span class="font-bold text-purple-400">{{ se.consensus_anomalies }}</span>
+                <span class="block text-[10px] text-[var(--text-muted)]">{{ se.consensus_fraction_str }}</span>
+              </td>
+              <td class="py-3 px-3 text-[11px] text-[var(--text-secondary)] max-w-xs leading-relaxed">
+                {{ se.scientific_explanation }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="mt-4 p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
+          <strong class="text-[var(--text-primary)]">Scientific Takeaway:</strong> {{ seasonal_bias.seasonal_distribution_conclusion }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. False-Positive & False-Negative Implications (Operational Risks)
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex items-center gap-2 pb-3 border-b border-[var(--border-subtle)]">
+      <i data-lucide="alert-octagon" class="w-5 h-5 text-rose-400"></i>
+      <h2 class="text-lg font-bold text-[var(--text-primary)]">
+        Operational Risks: False Positives & False Negatives in Sensor Quality Control
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+      
+      <!-- Risk 1: Real Weather Flags -->
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-amber-400 flex items-center gap-2">
+          <i data-lucide="flame" class="w-4 h-4"></i>
+          1. Conflation of Extreme Weather with Faults
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          Unsupervised models cannot distinguish between a fractured temperature probe reporting -30°C on a summer day and a legitimate historic Arctic Polar Vortex where temperatures legitimately plunge to -30.5°C across the Midwest. Both produce identical high-dimensional sparsity.
+        </p>
+      </div>
+
+      <!-- Risk 2: Scientific Inversion -->
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-rose-400 flex items-center gap-2">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          2. Risk of Purging Rare Climate Data
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          If automated quality-control pipelines automatically delete or overwrite flagged observations, rare climate records (the 100-year heat waves, hurricane downpours, and blizzard depths) will be erased from meteorological databases, artificially attenuating climate change variance signals.
+        </p>
+      </div>
+
+      <!-- Risk 3: Drift Blindness -->
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-cyan-400 flex items-center gap-2">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          3. Calibration Drift Blindness (False Negatives)
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          Point-in-time anomaly detection with a fixed 3% contamination threshold cannot detect subtle, persistent sensor defects (e.g. a resistance thermometer drifting +0.4°C every year). Such observations remain well within the 97% normal probability envelope.
+        </p>
+      </div>
+
+      <!-- Risk 4: Climate Envelope Relativity -->
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-purple-400 flex items-center gap-2">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          4. Climate Envelope Relativity
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          An observation of 32°C (90°F) in Miami is climatologically expected and completely unremarkable, whereas the exact same measurement in Seattle represents an extreme record-breaking heat event that severely strains local infrastructure.
+        </p>
+      </div>
+
+      <!-- Risk 5: Epistemological Limit -->
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-emerald-400 flex items-center gap-2">
+          <i data-lucide="cpu" class="w-4 h-4"></i>
+          5. Statistical Detector Epistemological Limits
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          A statistical model only reports mathematical distance from an empirical distribution. Confirming a physical hardware malfunction requires physical calibration benches, dual-instrument co-location, or ground-level technician inspection reports.
+        </p>
+      </div>
+
+      <!-- Risk 6: Lack of Labelled Ground Truth -->
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-blue-400 flex items-center gap-2">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          6. Ground Truth Absence (No Synthetic Numbers)
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          Because this study uses real-world observational data from NOAA GHCN-Daily rather than synthetic simulation benchmarks, precise numerical False-Positive and False-Negative Rates cannot be mathematically computed without fabricating arbitrary labels.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. Comprehensive Catalog of 9 Methodological Limitations
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="file-question" class="w-5 h-5 text-amber-400"></i>
+          Formal Catalog of Methodological Limitations
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Detailed technical inventory of algorithmic, data, and statistical constraints inherent in the study's design.
+        </p>
+      </div>
+      <span class="text-xs font-mono text-[var(--text-muted)]">9 Total Formal Limitations Documented</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {% for lim in limitations %}
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-3">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+              LIMITATION #0{{ lim.id }} // {{ lim.category }}
+            </span>
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded {% if lim.severity == 'Critical' %}bg-rose-500/10 text-rose-400 border border-rose-500/20{% elif lim.severity == 'High' %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% else %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20{% endif %}">
+              {{ lim.severity }}
+            </span>
+          </div>
+          <h4 class="text-sm font-bold text-[var(--text-primary)] mb-1.5">{{ lim.title }}</h4>
+          <p class="text-xs text-[var(--text-secondary)] leading-relaxed">{{ lim.description }}</p>
+        </div>
+
+        <div class="pt-2 border-t border-[var(--border-subtle)] text-[11px]">
+          <span class="text-cyan-400 font-semibold font-mono">Mitigation / Safeguard:</span>
+          <p class="text-[var(--text-muted)] mt-0.5 leading-relaxed">{{ lim.mitigation }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       8. Ethical & Responsible AI Governance Guidelines
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex items-center gap-2 pb-3 border-b border-[var(--border-subtle)]">
+      <i data-lucide="scale" class="w-5 h-5 text-emerald-400"></i>
+      <h2 class="text-lg font-bold text-[var(--text-primary)]">
+        Ethical & Responsible Machine Learning Guidelines for Meteorological Quality Control
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+      {% for guide in ethical_guidelines %}
+      <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+        <div class="font-bold text-emerald-400 text-sm flex items-center gap-2">
+          <i data-lucide="check-shield" class="w-4 h-4"></i>
+          {{ guide.principle }}
+        </div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">{{ guide.rule }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       9. Complete 10-Step Reproducibility Workflow Architecture
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border-subtle)]">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="git-commit" class="w-5 h-5 text-cyan-400"></i>
+          Methodology & Reproducibility Pipeline Architecture
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          End-to-end deterministic data and machine learning pipeline ensuring full auditability and scientific reproducibility.
+        </p>
+      </div>
+      <div class="text-xs font-mono text-[var(--text-muted)] space-y-0.5 text-right">
+        <div>Seed: <code>random_state=42</code> &bull; Python: 3.11.15</div>
+        <div>Reproduce: <code>python src/pipeline.py --full</code></div>
+      </div>
+    </div>
+
+    <!-- 10 Step Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      {% for st in methodology.steps %}
+      <div class="p-3.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-xs space-y-2 relative flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+            <span class="text-cyan-400 font-bold">STEP 0{{ st.step }}</span>
+            <span class="text-[var(--text-muted)] truncate max-w-[100px]">{{ st.input.split('(')[0] }}</span>
+          </div>
+          <h4 class="font-bold text-[var(--text-primary)] text-xs mb-1">{{ st.name }}</h4>
+          <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">{{ st.description }}</p>
+        </div>
+
+        <div class="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] truncate">
+          Output: <span class="text-emerald-400 font-medium">{{ st.output }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- PCA Role Clarification Note -->
+    <div class="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-start gap-3.5">
+      <div class="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 shrink-0 mt-0.5">
+        <i data-lucide="orbit" class="w-5 h-5"></i>
+      </div>
+      <div class="text-xs space-y-1">
+        <div class="font-semibold text-cyan-300 text-sm">Dimensionality Distinction: PCA Visual Lens vs Anomaly Classifiers</div>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          Principal Component Analysis (PCA) is applied strictly as an <em>exploratory visual projection lens</em> that compresses 10 standardized features into 2D (44.05% variance) and 3D (56.25% variance) representations. It is <strong>never used as an anomaly classifier</strong> because it intentionally discards 43.75% of residual variance in components 4 through 10. Isolation Forest and LOF operate exclusively on the complete, lossless 10-dimensional feature space.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       10. Final Scientific Conclusion
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex items-center gap-2 pb-3 border-b border-[var(--border-subtle)]">
+      <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-400"></i>
+      <h2 class="text-lg font-bold text-[var(--text-primary)]">
+        Final Scientific Conclusion (Ground Truth Synthesis)
+      </h2>
+    </div>
+
+    <div class="space-y-3 text-xs leading-relaxed text-[var(--text-secondary)]">
+      <p>
+        The empirical investigation across 11,688 NOAA GHCN-Daily observations demonstrates that unsupervised machine learning methods provide powerful, complementary mathematical lenses for screening weather observation data, but must be deployed with profound domain awareness:
+      </p>
+
+      <ul class="list-disc pl-5 space-y-2">
+        {% for conc in summary.core_conclusions %}
+        <li>{{ conc }}</li>
+        {% endfor %}
+      </ul>
+
+      <p class="pt-2 text-[var(--text-primary)] font-medium">
+        In operational meteorology, unsupervised models should serve strictly as <strong>autonomous prioritization filters</strong> that surface high-severity consensus candidates (e.g. the 78 dual-flagged observations) to qualified meteorologists, rather than autonomous systems authorized to decommission sensors or alter the historical climate archive.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scientific_insights.js') }}"></script>
+{% endblock %}
+

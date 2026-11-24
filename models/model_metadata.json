@@ -1,0 +1,37 @@
+{
+  "project_title": "Faulty Weather-Station Observation Detection Using Anomaly Detection Methods",
+  "problem_statement_id": "SIH26073",
+  "course": "INT396 – Unsupervised Machine Learning",
+  "dataset": "NOAA Global Historical Climatology Network – Daily (GHCN-Daily)",
+  "version": "1.0.0",
+  "created_at": "2026-11-13",
+  "experiments": {
+    "isolation_forest": {
+      "algorithm": "Isolation Forest",
+      "library": "scikit-learn",
+      "tested_parameters": {
+        "contamination": [0.01, 0.03, 0.05],
+        "n_estimators": [100, 150],
+        "random_state": 42
+      },
+      "status": "planned"
+    },
+    "local_outlier_factor": {
+      "algorithm": "Local Outlier Factor (LOF)",
+      "library": "scikit-learn",
+      "tested_parameters": {
+        "n_neighbors": [10, 20, 30],
+        "novelty": false
+      },
+      "status": "planned"
+    },
+    "pca": {
+      "algorithm": "Principal Component Analysis",
+      "library": "scikit-learn",
+      "n_components": 2,
+      "purpose": "Dimensionality reduction for 2D visualization of anomalies",
+      "status": "planned"
+    }
+  }
+}
+

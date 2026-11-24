@@ -1,0 +1,49 @@
+# ==============================================================================
+# ATMOSPHERE INTELLIGENCE (SIH26073) - Git Ignore Rules
+# ==============================================================================
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.uv_python/
+.python/
+.uv_cache/
+
+# Runtime and matplotlib caches
+.cache/
+.matplotlib/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Data files (raw compressed archives - processed CSVs preserved)
+data/raw/*.gz
+data/raw/*.tar.gz
+data/raw/*.dly
+
+# Operating System and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Streamlit legacy cache
+.streamlit/
+
+# Temporary and local scratch files
+*.tmp
+*.bak
+test_shots/
+*.zip
+

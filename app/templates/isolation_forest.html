@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Isolation Forest{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Telemetry Identity
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-normal">UNSUPERVISED LEARNING</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 05</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-cyan-400 font-bold">
+          Tree-Based Orthogonal Partitioning
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Isolation Forest Anomaly Detection
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Recursive random orthogonal subspace partitioning. Isolates sparse multi-feature climatological deviations via short tree path lengths without assuming parametric distributions.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="/lof" class="atm-btn-primary">
+        <i data-lucide="scatter-chart" class="w-4 h-4"></i>
+        <span>Local Outlier Factor</span>
+      </a>
+      <a href="#sensitivity-section" class="atm-btn-secondary">
+        <i data-lucide="git-compare" class="w-4 h-4"></i>
+        <span>Sensitivity Matrix</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Educational Algorithm Fundamentals
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-5">
+    <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+      <h3 class="text-sm font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold flex items-center gap-2">
+        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
+        <span>Algorithm Fundamentals: How Isolation Forest Operates</span>
+      </h3>
+      <span class="text-xs font-mono text-[var(--text-muted)]">Liu, Ting & Zhou (2008)</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[var(--text-secondary)] leading-relaxed">
+      <div class="space-y-2">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">1</span>
+          <span>Orthogonal Recursive Partitioning</span>
+        </div>
+        <p>
+          Unlike distance-based or density estimators, an Isolation Forest builds an ensemble of completely random trees. At each node, a random feature is chosen and split uniformly between its minimum and maximum values.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">2</span>
+          <span>Short Path Length Hypothesis</span>
+        </div>
+        <p>
+          Anomalous observations reside in sparse regions of the 10-dimensional feature space. Consequently, they require significantly fewer splits&mdash;i.e., a shorter average path length <span class="font-mono text-cyan-300">h(x)</span>&mdash;to become isolated in leaf nodes.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">3</span>
+          <span>Decision Score Convention</span>
+        </div>
+        <p>
+          Scikit-learn maps path lengths to continuous scores via <span class="font-mono text-cyan-300">s(x, n) = 2^(-E(h(x))/c(n))</span>. In <span class="font-mono text-cyan-300">decision_function()</span>, negative scores indicate anomalies; scores &ge; 0 represent normal observations.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. Dynamic Model Configuration & Parameter Tuning Panel
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+          <span>Model Parameter Controls</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Adjust contamination rate, ensemble size, and feature inputs to trigger live inference or retrieve verified baseline caches.
+        </p>
+      </div>
+      <div id="execution-badge" class="flex items-center gap-2 text-xs font-mono px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="execution-status-text">Baseline Precomputed Cache Active (0 ms)</span>
+      </div>
+    </div>
+
+    <form id="if-config-form" class="space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Contamination -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Contamination Ratio (c)
+          </label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <label class="atm-radio-card cursor-pointer text-center p-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:border-cyan-400 text-xs font-mono">
+              <input type="radio" name="contamination" value="0.01" class="hidden">
+              <span>0.01 (1%)</span>
+            </label>
+            <label class="atm-radio-card cursor-pointer text-center p-2 rounded-lg border border-cyan-400 bg-cyan-500/10 text-cyan-300 font-bold text-xs font-mono active">
+              <input type="radio" name="contamination" value="0.03" checked class="hidden">
+              <span>0.03 (3%)</span>
+            </label>
+            <label class="atm-radio-card cursor-pointer text-center p-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:border-cyan-400 text-xs font-mono">
+              <input type="radio" name="contamination" value="0.05" class="hidden">
+              <span>0.05 (5%)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Number of Estimators -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Ensemble Trees (n_estimators)
+          </label>
+          <select id="n-estimators-select" name="n_estimators" class="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-400 font-mono">
+            <option value="50">50 Isolation Trees</option>
+            <option value="100" selected>100 Trees (Verified Baseline)</option>
+            <option value="150">150 Trees</option>
+            <option value="200">200 Trees</option>
+          </select>
+        </div>
+
+        <!-- Station Scope -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Station Scope Filter
+          </label>
+          <select id="station-scope-select" class="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+            <option value="ALL" selected>All 4 Stations (Global In-Memory)</option>
+            {% for st in stations %}
+            <option value="{{ st.station_id }}">{{ st.name }} ({{ st.state }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Reproducibility Seed -->
+        <div>
+          <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-1.5 font-semibold">
+            Random State Seed
+          </label>
+          <input type="number" id="random-seed-input" value="42" class="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] font-mono focus:outline-none focus:border-cyan-400" readonly>
+        </div>
+
+      </div>
+
+      <!-- Features Selection Pills -->
+      <div>
+        <label class="block text-xs font-mono uppercase text-[var(--text-muted)] mb-2 font-semibold">
+          Active Modeling Features (Standard-Scaled Matrix)
+        </label>
+        <div class="flex flex-wrap gap-2 text-xs font-mono" id="feature-checkboxes">
+          {% for feat in feature_list %}
+          <label class="cursor-pointer px-2.5 py-1 rounded bg-[var(--bg-card)] border border-cyan-500/30 text-cyan-300 flex items-center gap-1.5 hover:bg-cyan-500/10 transition-colors">
+            <input type="checkbox" name="features" value="{{ feat }}" checked class="accent-cyan-400">
+            <span>{{ feat }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[var(--border-subtle)]">
+        <div class="flex items-center gap-3">
+          <button type="button" id="run-if-btn" onclick="executeIsolationForest()" class="atm-btn-primary flex items-center gap-2">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>Execute Model</span>
+          </button>
+          <button type="button" onclick="resetIFBaseline()" class="atm-btn-secondary flex items-center gap-2">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>Reset to Baseline</span>
+          </button>
+        </div>
+        <span class="text-xs text-[var(--text-muted)] font-mono">
+          Baseline seed: 42 // Algorithm: sklearn.ensemble.IsolationForest
+        </span>
+      </div>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       4. Real Telemetry Metric Cards
+       ========================================================================= -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Analysed Records</span>
+        <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+      </div>
+      <div id="stat-total-obs" class="text-2xl sm:text-3xl font-bold font-mono text-[var(--text-primary)] mt-2">
+        {{ "{:,}".format(initial_analysis.summary.total_observations) }}
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1">4 stations &bull; 2,922 days each</p>
+    </div>
+
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Anomalies Flagged</span>
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+      </div>
+      <div id="stat-anom-count" class="text-2xl sm:text-3xl font-bold font-mono text-amber-400 mt-2">
+        {{ initial_analysis.summary.anomalies_detected }}
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+        <span id="stat-anom-pct" class="font-bold text-[var(--text-primary)]">{{ "%.2f"|format(initial_analysis.summary.anomaly_percentage) }}%</span> of total observations
+      </p>
+    </div>
+
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Normal Observations</span>
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+      </div>
+      <div id="stat-norm-count" class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-2">
+        {{ "{:,}".format(initial_analysis.summary.normal_observations) }}
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+        <span id="stat-norm-pct" class="font-bold text-[var(--text-primary)]">{{ "%.2f"|format(100.0 - initial_analysis.summary.anomaly_percentage) }}%</span> inlier confidence
+      </p>
+    </div>
+
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-[var(--text-muted)] uppercase">Score Range (Decision)</span>
+        <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+      </div>
+      <div id="stat-score-range" class="text-lg font-bold font-mono text-[var(--text-primary)] mt-2">
+        [{{ "%.4f"|format(initial_analysis.summary.score_min) }}, {{ "%.4f"|format(initial_analysis.summary.score_max) }}]
+      </div>
+      <p class="text-xs text-[var(--text-secondary)] mt-1 font-mono">
+        Median: <span id="stat-score-median" class="font-bold text-cyan-400">{{ "%.4f"|format(initial_analysis.summary.score_median) }}</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. Interactive Plotly Visualizations
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- Chart 1: Decision Score Distribution Histogram -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">Decision Function Score Distribution</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Decision threshold at score = 0.0 (red zone = outlier, cyan = normal)</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">30 Bins</span>
+      </div>
+      <div id="if-score-hist-chart" class="w-full h-80"></div>
+    </div>
+
+    <!-- Chart 2: Anomaly Frequency by Station -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">Station Anomaly Count &amp; Share</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Geographical distribution of candidate isolation outliers</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-amber-400">Station Share</span>
+      </div>
+      <div id="if-station-bar-chart" class="w-full h-80"></div>
+    </div>
+
+    <!-- Chart 3: Seasonal Anomaly Breakdown -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">Seasonal Clustering of Candidate Anomalies</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Severe winter polar outbreaks dominate the isolated feature subspace</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">Seasonal Climatology</span>
+      </div>
+      <div id="if-season-bar-chart" class="w-full h-80"></div>
+    </div>
+
+    <!-- Chart 4: Bivariate Temperature Space Scatter -->
+    <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-[var(--text-primary)]">TMIN vs TMAX Outlier Projections</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Highlighted Isolation Forest anomalies against normal observations</p>
+        </div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card)] text-cyan-400">Temperature Subspace</span>
+      </div>
+      <div id="if-temp-scatter-chart" class="w-full h-80"></div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       6. Top Suspicious Observations Table
+       ========================================================================= -->
+  <div class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i>
+          <span>Top Suspicious Observations (Ranked by Shortest Isolation Path)</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Observations isolated earliest in the tree ensemble. Click &ldquo;Inspect&rdquo; to analyze raw vs scaled measurements and NOAA quality flags.
+        </p>
+      </div>
+      <span class="text-xs font-mono px-2.5 py-1 rounded bg-[var(--bg-card)] text-amber-400 font-bold">
+        Top 20 Critical Candidates
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="font-mono uppercase text-[10px] text-[var(--text-muted)] bg-[var(--bg-card)] border-b border-[var(--border-subtle)]">
+          <tr>
+            <th class="p-2.5">Rank</th>
+            <th class="p-2.5">Date</th>
+            <th class="p-2.5">Station</th>
+            <th class="p-2.5 text-right">TMAX (&deg;C)</th>
+            <th class="p-2.5 text-right">TMIN (&deg;C)</th>
+            <th class="p-2.5 text-right">Range (&deg;C)</th>
+            <th class="p-2.5 text-right">PRCP (mm)</th>
+            <th class="p-2.5 text-right">Snow (mm)</th>
+            <th class="p-2.5 text-right">Decision Score</th>
+            <th class="p-2.5 text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody id="if-anomalies-tbody" class="divide-y divide-[var(--border-subtle)] font-mono">
+          {% for anom in initial_analysis.top_anomalies[:20] %}
+          <tr class="hover:bg-[var(--bg-hover)] transition-colors">
+            <td class="p-2.5 font-bold text-amber-400">#{{ anom.rank }}</td>
+            <td class="p-2.5 text-[var(--text-primary)] font-bold">{{ anom.date }}</td>
+            <td class="p-2.5 text-[var(--text-secondary)] font-sans">
+              <span class="font-mono text-cyan-400 font-semibold">{{ anom.station }}</span>
+              <span class="text-[11px] block text-[var(--text-muted)]">{{ anom.station_name }}</span>
+            </td>
+            <td class="p-2.5 text-right">{{ "%.1f"|format(anom.tmax) }}</td>
+            <td class="p-2.5 text-right">{{ "%.1f"|format(anom.tmin) }}</td>
+            <td class="p-2.5 text-right text-cyan-400">{{ "%.1f"|format(anom.temp_range) }}</td>
+            <td class="p-2.5 text-right {% if anom.prcp > 25.0 %}text-amber-400 font-bold{% endif %}">{{ "%.1f"|format(anom.prcp) }}</td>
+            <td class="p-2.5 text-right {% if anom.snow > 0.0 %}text-sky-300 font-bold{% endif %}">{{ "%.1f"|format(anom.snow) }}</td>
+            <td class="p-2.5 text-right font-bold text-rose-400">{{ "%.4f"|format(anom.score) }}</td>
+            <td class="p-2.5 text-center">
+              <button onclick="inspectObservation('{{ anom.station }}', '{{ anom.date }}')" class="atm-btn-secondary px-2.5 py-1 text-[11px]">
+                Inspect
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. Parameter Sensitivity Matrix (c = 0.01, 0.03, 0.05)
+       ========================================================================= -->
+  <div id="sensitivity-section" class="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="git-compare" class="w-4 h-4 text-cyan-400"></i>
+          <span>Contamination Sensitivity Analysis</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Empirical evaluation of detection sensitivity across contamination thresholds (0.01, 0.03, 0.05).
+        </p>
+      </div>
+      <span class="text-xs font-mono px-2.5 py-1 rounded bg-[var(--bg-card)] text-emerald-400 font-bold">
+        Strict Monotonic Nested Subset Verified
+      </span>
+    </div>
+
+    <!-- Sensitivity Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {% for cfg in sensitivity.configurations %}
+      <div class="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono uppercase text-cyan-400 font-bold">c = {{ cfg.contamination }}</span>
+          <span class="text-xs font-mono text-[var(--text-muted)]">Rate: {{ cfg.pct }}%</span>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+          {{ cfg.anomalies }} <span class="text-xs font-normal text-[var(--text-muted)]">anomalies</span>
+        </div>
+        <div class="text-[11px] font-mono text-[var(--text-secondary)] space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
+          <div>Min Score: <span class="text-rose-400">{{ cfg.score_min }}</span></div>
+          <div>Median Score: <span class="text-cyan-400">{{ cfg.score_median }}</span></div>
+          <div>Max Score: <span class="text-emerald-400">{{ cfg.score_max }}</span></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Scientific Overlap & Subset Explanation -->
+    <div class="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200 leading-relaxed space-y-2">
+      <div class="font-bold flex items-center gap-2 text-cyan-300">
+        <i data-lucide="layers" class="w-4 h-4"></i>
+        <span>Mathematical Subset Hierarchy:</span>
+      </div>
+      <p>
+        {{ sensitivity.overlap_analysis.description }}
+      </p>
+      <div class="font-mono text-[11px] pt-1 flex flex-wrap gap-4 text-cyan-100">
+        <span>&bull; Common to all 3 configs: <strong>{{ sensitivity.overlap_analysis.common_all_three }}</strong> observations</span>
+        <span>&bull; Added when expanding 0.01 &rarr; 0.03: <strong>+{{ sensitivity.overlap_analysis.added_at_c03 }}</strong></span>
+        <span>&bull; Added when expanding 0.03 &rarr; 0.05: <strong>+{{ sensitivity.overlap_analysis.added_at_c05 }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Station Transition Breakdown Table -->
+    <div>
+      <h4 class="text-xs font-mono uppercase text-[var(--text-muted)] font-semibold mb-3">
+        Station-Level Anomaly Expansion Across Contamination Levels
+      </h4>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="text-[10px] uppercase text-[var(--text-muted)] bg-[var(--bg-card)] border-b border-[var(--border-subtle)]">
+            <tr>
+              <th class="p-2.5">Weather Station</th>
+              <th class="p-2.5 text-right">c = 0.01 Count</th>
+              <th class="p-2.5 text-right">c = 0.03 (Baseline)</th>
+              <th class="p-2.5 text-right">c = 0.05 Count</th>
+              <th class="p-2.5 text-right">Baseline Anomaly Rate</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border-subtle)]">
+            {% for st_row in sensitivity.station_breakdown %}
+            <tr class="hover:bg-[var(--bg-hover)]">
+              <td class="p-2.5 font-bold text-[var(--text-primary)]">
+                {{ st_row.name }} <span class="text-[var(--text-muted)] font-normal">({{ st_row.station }})</span>
+              </td>
+              <td class="p-2.5 text-right text-cyan-400">{{ st_row.c01 }}</td>
+              <td class="p-2.5 text-right font-bold text-amber-400">{{ st_row.c03 }}</td>
+              <td class="p-2.5 text-right text-rose-400">{{ st_row.c05 }}</td>
+              <td class="p-2.5 text-right font-bold text-[var(--text-primary)]">
+                {{ "%.2f"|format(st_row.c03 / 2922.0 * 100.0) }}%
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       8. Scientific Caveats & Defense Protocol
+       ========================================================================= -->
+  <div class="p-5 rounded-xl bg-[var(--bg-surface)] border border-amber-500/20 text-xs text-[var(--text-secondary)] space-y-3">
+    <div class="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider font-mono text-[11px]">
+      <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+      <span>Academic &amp; Meteorological Defense Protocol</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 leading-relaxed">
+      <p>
+        <strong>1. Statistical Outlier vs Sensor Fault:</strong> An unsupervised tree path length measures isolation in standard-scaled multi-feature space. Severe natural mesoscale weather (e.g. blizzards, heat domes, hurricane rainbands) exhibits short isolation path lengths identically to sensor glitches.
+      </p>
+      <p>
+        <strong>2. Contamination is an A Priori Hypothesis:</strong> The parameter <span class="font-mono text-cyan-300">contamination=0.03</span> is a calibration threshold, not a measured defect rate. Without ground-truth fault logs, performance cannot be evaluated with precision/recall.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Include Reusable Observation Inspection Modal -->
+{% include "components/observation_modal.html" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.ATMOSPHERE_IF_INITIAL = {{ initial_analysis|tojson }};
+  window.ATMOSPHERE_IF_SENSITIVITY = {{ sensitivity|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/isolation_forest.js') }}"></script>
+{% endblock %}

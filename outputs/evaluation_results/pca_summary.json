@@ -1,0 +1,18 @@
+{
+  "variance_metrics": {
+    "pc1_explained_variance": 0.2796353218676899,
+    "pc2_explained_variance": 0.16082282547421758,
+    "cumulative_explained_variance": 0.44045814734190747,
+    "n_features_in": 10
+  },
+  "top_pc1_drivers": [
+    "TMAX",
+    "TMIN",
+    "COS_DOY"
+  ],
+  "top_pc2_drivers": [
+    "TMAX_DIFF_1D",
+    "TMIN_DIFF_1D",
+    "TEMP_RANGE"
+  ]
+}

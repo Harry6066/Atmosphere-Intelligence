@@ -1,0 +1,31 @@
+{
+  "total_records": 11688,
+  "stations": [
+    "USW00012839",
+    "USW00024233",
+    "USW00094728",
+    "USW00094846"
+  ],
+  "date_range": [
+    "2016-01-01 00:00:00",
+    "2023-12-31 00:00:00"
+  ],
+  "numerical_features": [
+    "TMAX",
+    "TMIN",
+    "TEMP_RANGE",
+    "PRCP",
+    "SNOW",
+    "SNWD",
+    "TMAX_DIFF_1D",
+    "TMIN_DIFF_1D",
+    "SIN_DOY",
+    "COS_DOY"
+  ],
+  "physical_audit": {
+    "inverted_temp_count": 0,
+    "negative_prcp_count": 0,
+    "official_qc_flagged_count": 0,
+    "total_rule_violations": 0
+  }
+}

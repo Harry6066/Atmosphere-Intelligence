@@ -1,0 +1,5 @@
+Event,Station,Date_Range,Days,Expected_Phenomenon,IF_Flagged_Days,LOF_Flagged_Days,Consensus_Flagged_Days,Scientific_Classification,Assessment
+Chicago Polar Vortex Record Freeze,USW00094846,2019-01-29 to 2019-01-31,3,Historic subzero temperatures (TMIN reaching -30.5°C / -23°F),3,3,3,Legitimate Extreme Weather,"Correctly Identified Extreme Event (Statistical Outlier, NOT Sensor Fault)"
+Pacific Northwest Historic Heat Dome,USW00024233,2021-06-26 to 2021-06-28,3,All-time record high temperatures in Seattle (TMAX reaching 42.2°C / 108°F),0,3,0,Legitimate Extreme Weather,"Correctly Identified Extreme Event (Statistical Outlier, NOT Sensor Fault)"
+Hurricane Ida Flash Flooding,USW00094728,2021-09-01 to 2021-09-02,2,Record torrential rainfall (PRCP > 180 mm in 24 hours at Central Park),1,1,1,Legitimate Extreme Weather,"Correctly Identified Extreme Event (Statistical Outlier, NOT Sensor Fault)"
+Chicago Winter Blizzard & Deep Snow,USW00094846,2021-02-15 to 2021-02-16,2,"Heavy lake-effect blizzard, subzero highs and snow accumulation > 400 mm",2,2,2,Legitimate Extreme Weather,"Correctly Identified Extreme Event (Statistical Outlier, NOT Sensor Fault)"

@@ -1,0 +1,144 @@
+================================================================================
+ATMOSPHERE INTELLIGENCE | SIH26073
+Faulty Weather-Station Observation Detection Using Anomaly Detection Methods
+Course: INT396 - Unsupervised Machine Learning
+================================================================================
+
+1. PROJECT SUBMISSION METADATA
+--------------------------------------------------------------------------------
+Project Title:        Faulty Weather-Station Observation Detection Using Anomaly Detection Methods
+Platform Name:        ATMOSPHERE INTELLIGENCE
+Problem Statement ID: SIH26073
+Course Code:          INT396 (Unsupervised Machine Learning)
+Academic Term:        Spring / Winter Term 2026
+Submission Scope:     Phases A through J Complete Delivery Package
+
+Student Details:
+- Student 1 Name:     [STUDENT_1_NAME_PENDING]
+  Registration No:    [STUDENT_1_REG_NO_PENDING]
+- Student 2 Name:     [STUDENT_2_NAME_PENDING]
+  Registration No:    [STUDENT_2_REG_NO_PENDING]
+- Student 3 Name:     [STUDENT_3_NAME_PENDING]
+  Registration No:    [STUDENT_3_REG_NO_PENDING]
+
+Faculty Mentor / Course Instructor:
+- Instructor Name:    [FACULTY_INSTRUCTOR_NAME_PENDING]
+  Department:         Department of Computer Science & Engineering / Machine Learning
+
+
+2. SOURCE CODE & REPOSITORY STATUS
+--------------------------------------------------------------------------------
+GitHub Repository:
+- Status:             Local Git Workspace (Pending remote push by students)
+- Target URL:         [PENDING: Insert repository URL upon upload to GitHub/GitLab]
+- Local Path:         ./Faulty_Weather_Station_Detection
+
+Live Deployment Status:
+- Status:             Locally Hosted Flask Web Platform (Production-ready local deployment)
+- Local Server URL:   http://127.0.0.1:5000  (or http://localhost:5000)
+- Health Check:       http://127.0.0.1:5000/health
+- Demonstration Video: [PENDING: Insert recorded screencast/video link if required by evaluation panel]
+
+
+3. DATASET PROVENANCE & EXTERNAL REFERENCES
+--------------------------------------------------------------------------------
+Primary Source Dataset:
+- Name:               NOAA Global Historical Climatology Network - Daily (GHCN-Daily)
+- Custodian:          National Centers for Environmental Information (NCEI / NOAA)
+- Portal:             https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily
+- Documentation:      https://www.ncei.noaa.gov/pub/data/ghcn/daily/readme.txt
+- Selected Stations:
+  * USW00094846 - Chicago O'Hare International Airport, IL (Humid Continental)
+  * USW00094728 - New York Central Park, NY (Continental Maritime / Humid Subtropical)
+  * USW00024233 - Seattle-Tacoma International Airport, WA (Oceanic / Mediterranean Pacific)
+  * USW00012839 - Miami International Airport, FL (Tropical Rainforest / Savanna)
+- Temporal Coverage:  2016-01-01 to 2023-12-31 (8 full calendar years = 2,922 days/station = 11,688 observations)
+
+Machine Learning Reference Documentation:
+- Isolation Forest:   https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html
+  * Reference: Liu, F. T., Ting, K. M., & Zhou, Z. H. (2008). Isolation forest. IEEE ICDM.
+- Local Outlier Factor: https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.LocalOutlierFactor.html
+  * Reference: Breunig, M. M., et al. (2000). LOF: identifying density-based local outliers. ACM SIGMOD.
+- Principal Component Analysis: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+  * Reference: Jolliffe, I. T. (2002). Principal Component Analysis. Springer.
+
+
+4. LOCAL EXECUTION & STARTUP INSTRUCTIONS
+--------------------------------------------------------------------------------
+To run ATMOSPHERE INTELLIGENCE on your local workstation:
+
+Step 1: Open a terminal inside the project root:
+    cd Faulty_Weather_Station_Detection
+
+Step 2: Ensure Python 3.11+ is available and activate your virtual environment:
+    # On Windows:
+    .\.venv\Scripts\Activate.ps1
+    # On Linux/macOS:
+    source .venv/bin/activate
+
+Step 3: Install dependencies (if not already installed):
+    pip install -r requirements.txt
+
+Step 4: Launch the Flask application:
+    python run.py
+
+Step 5: Open your web browser and navigate to:
+    http://127.0.0.1:5000
+
+Step 6: Run the automated test suite:
+    pytest tests/ -v
+
+
+5. GUIDED 9-STEP EVALUATION DEMONSTRATION SEQUENCE
+--------------------------------------------------------------------------------
+When demonstrating or evaluating the ATMOSPHERE INTELLIGENCE platform, follow this
+curated sequence to review all 10 modules:
+
+1. Module 1: Project Overview (http://127.0.0.1:5000/)
+   - Review high-level platform KPI cards (11,688 total observations, 4 stations, 78 consensus anomalies).
+   - Inspect the interactive NOAA station geography map, project objectives, and scientific workflow.
+
+2. Module 2: Dataset Explorer (http://127.0.0.1:5000/dataset-explorer)
+   - Filter records by station (Chicago, New York, Seattle, Miami) and anomaly status.
+   - Use the live search bar to look up specific dates (e.g., "2019-01-30" or "2021-06-28").
+   - Test the live CSV export button to download filtered observation subsets.
+
+3. Module 3: Exploratory Data Analysis (http://127.0.0.1:5000/eda)
+   - Inspect empirical probability distributions (histograms and KDEs) across TMAX, TMIN, PRCP, SNOW, SNWD.
+   - Analyze Pearson correlation heatmap and climatological annual cycles by station.
+
+4. Module 4: Data Quality & Preprocessing (http://127.0.0.1:5000/data-quality)
+   - Inspect NOAA quality flags audit, missing value imputation strategy (forward/backward fill),
+     and feature engineering breakdown (TEMP_RANGE, 24h temperature deltas, cyclical day-of-year encoding).
+
+5. Module 5: Isolation Forest (http://127.0.0.1:5000/isolation-forest)
+   - Review baseline results (contamination = 0.03, n_estimators = 100, 351 anomalies flagged).
+   - Test the interactive parameter sensitivity controls (test contamination = 0.01 and 0.05).
+   - Inspect score distribution histograms and tree depth isolation mechanics.
+
+6. Module 6: Local Outlier Factor (http://127.0.0.1:5000/local-outlier-factor)
+   - Review baseline density results (k = 20 neighbors, contamination = 0.03, 351 anomalies flagged).
+   - Test neighborhood sensitivity (k = 10 and k = 30) and inspect negative outlier factor score curves.
+
+7. Module 7: Model Comparison Engine (http://127.0.0.1:5000/model-comparison)
+   - Analyze the Jaccard Paradox: 95.33% binary agreement across all data vs. only 12.50% Jaccard
+     similarity on anomaly tails (78 consensus anomalies out of 624 union).
+   - Review station-by-station and season-by-season algorithm divergence breakdown.
+
+8. Module 8: PCA 2D & 3D Dimensionality Reduction (http://127.0.0.1:5000/pca-visualization)
+   - Explore interactive 2D and 3D scatter plots showing normal points vs. IF, LOF, and Consensus outliers.
+   - Inspect the Scree plot (PC1 = 27.96%, PC2 = 16.08%, Cumulative 2D = 44.05%, 3D = 56.25%).
+   - Review eigenvector feature loadings explaining the physical drivers of each principal component.
+
+9. Module 9 & 10: Anomaly Investigation & Scientific Insights
+   - Navigate to /anomaly-investigation (http://127.0.0.1:5000/anomaly-investigation):
+     Review the uncalibrated Severity Index heuristic ranking and deep-dive into individual observations.
+   - Navigate to /scientific-insights (http://127.0.0.1:5000/scientific-insights):
+     Review the 4 historical extreme weather benchmark audits (2019 Polar Vortex, 2021 Heat Dome,
+     2021 Hurricane Ida, 2021 Blizzard) and read the scientific conclusions regarding statistical
+     anomalies versus physical sensor hardware failures.
+
+================================================================================
+Document Version: 1.0.0 | Date: November 2026
+Atmosphere Intelligence Platform - SIH26073
+================================================================================

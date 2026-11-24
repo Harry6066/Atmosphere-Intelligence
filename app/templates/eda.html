@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Exploratory Data Analysis{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Climatological Scope
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-cyan">DATA FOUNDATION</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 03</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-secondary)]">
+          11,688 Observations • 4 Climatological Regimes • 2016–2023
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Exploratory Data Analysis
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Empirical distributions, thermal range envelopes, zero-heavy precipitation skewness, and inter-feature cross-correlations across 8 historical years of verified NOAA GHCN-Daily records.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="/data-quality" class="atm-btn-primary">
+        <i data-lucide="shield-check" class="w-4 h-4"></i>
+        <span>Data Quality</span>
+      </a>
+      <a href="/dataset-explorer" class="atm-btn-secondary">
+        <i data-lucide="database" class="w-4 h-4"></i>
+        <span>Explorer</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Interactive EDA Control Filter Bar
+       ========================================================================= -->
+  <div class="atm-card p-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+      <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+        <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+        <span>Interactive Visualization Controls</span>
+      </h3>
+      <span class="text-xs font-mono text-[var(--text-muted)]">Charts recompute asynchronously from real data</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      
+      <!-- Station Filter -->
+      <div>
+        <label class="block text-xs font-mono text-[var(--text-muted)] mb-1">Station Climatology</label>
+        <select id="eda-station-filter" class="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500">
+          <option value="ALL">All Stations Combined (11,688 records)</option>
+          {% for stn in stations %}
+          <option value="{{ stn.station_id }}">{{ stn.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Feature Distribution Selector -->
+      <div>
+        <label class="block text-xs font-mono text-[var(--text-muted)] mb-1">Distribution Feature</label>
+        <select id="eda-feature-filter" class="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500">
+          <option value="TMAX" selected>TMAX — Daily Maximum Temperature (°C)</option>
+          <option value="TMIN">TMIN — Daily Minimum Temperature (°C)</option>
+          <option value="TEMP_RANGE">TEMP_RANGE — Diurnal Range (°C)</option>
+          <option value="TEMP_MEAN">TEMP_MEAN — Midpoint Temperature (°C)</option>
+          <option value="PRCP">PRCP — Daily Precipitation (mm)</option>
+          <option value="SNOW">SNOW — Daily Snowfall (mm)</option>
+          <option value="SNWD">SNWD — Snow Depth on Ground (mm)</option>
+          <option value="TMAX_DIFF_1D">TMAX_DIFF_1D — 24h TMAX Rate-of-Change (°C)</option>
+          <option value="TMIN_DIFF_1D">TMIN_DIFF_1D — 24h TMIN Rate-of-Change (°C)</option>
+        </select>
+      </div>
+
+      <!-- Seasonal Variable Selector -->
+      <div>
+        <label class="block text-xs font-mono text-[var(--text-muted)] mb-1">Monthly Climatology Curve</label>
+        <select id="eda-seasonal-var" class="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500">
+          <option value="TMAX" selected>TMAX (Max Temperature)</option>
+          <option value="TMIN">TMIN (Min Temperature)</option>
+          <option value="TEMP_RANGE">TEMP_RANGE (Diurnal Spread)</option>
+          <option value="PRCP">PRCP (Precipitation Accumulation)</option>
+          <option value="SNOW">SNOW (Snowfall)</option>
+        </select>
+      </div>
+
+      <!-- Bins Count Selector -->
+      <div>
+        <label class="block text-xs font-mono text-[var(--text-muted)] mb-1">Histogram Granularity</label>
+        <select id="eda-bins-filter" class="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500">
+          <option value="20">20 Bins (Broad overview)</option>
+          <option value="30" selected>30 Bins (Standard resolution)</option>
+          <option value="45">45 Bins (High resolution)</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. Distribution Analysis & Box Plot Grid (Plotly.js)
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Distribution Histogram Canvas -->
+    <div class="lg:col-span-7 atm-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-400"></i>
+            <span id="dist-chart-title">Empirical Distribution Histogram</span>
+          </h3>
+          <span id="dist-count-badge" class="atm-badge atm-badge-cyan">11,688 points</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-3">
+          Binned probability density frequency with median and quartile marker overlays.
+        </p>
+
+        <!-- Plotly Histogram Container -->
+        <div id="eda-histogram-chart" style="height: 300px; width: 100%;"></div>
+      </div>
+
+      <!-- Outliers Tukey Summary -->
+      <div class="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-mono text-[var(--text-secondary)]">
+        <span>Tukey Outliers (1.5 &times; IQR): <strong id="dist-outliers-count" class="text-cyan-400 font-bold">14</strong></span>
+        <span>Skewness: <strong id="dist-skewness" class="text-[var(--text-primary)]">-0.24</strong> | Kurtosis: <strong id="dist-kurtosis" class="text-[var(--text-primary)]">-0.88</strong></span>
+      </div>
+    </div>
+
+    <!-- Five-Number Summary & Box Plot Canvas -->
+    <div class="lg:col-span-5 atm-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="box" class="w-4 h-4 text-violet-400"></i>
+            <span>Five-Number Quantile Summary</span>
+          </h3>
+          <span class="text-xs font-mono text-[var(--text-muted)]">Parametric Stats</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-3">
+          Non-parametric quartile breakdown and dispersion metrics.
+        </p>
+
+        <!-- Quantile Grid -->
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono mb-4">
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase">Mean &plusmn; Std</span>
+            <div id="stat-mean-std" class="text-sm font-bold text-[var(--text-primary)] mt-0.5">19.93 &plusmn; 10.37</div>
+          </div>
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase">Median (Q2)</span>
+            <div id="stat-median" class="text-sm font-bold text-cyan-400 mt-0.5">22.20°C</div>
+          </div>
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase">Interquartile Range (Q3 - Q1)</span>
+            <div id="stat-iqr" class="text-sm font-bold text-[var(--text-primary)] mt-0.5">17.80°C</div>
+          </div>
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase">Extreme Min / Max</span>
+            <div id="stat-min-max" class="text-sm font-bold text-[var(--text-primary)] mt-0.5">-23.2° / 42.2°C</div>
+          </div>
+        </div>
+
+        <!-- Plotly Box Plot Container -->
+        <div id="eda-box-chart" style="height: 140px; width: 100%;"></div>
+      </div>
+
+      <div class="pt-2 text-[11px] text-[var(--text-muted)]">
+        *Outliers defined via Tukey threshold: values &lt; Q1 - 1.5&times;IQR or &gt; Q3 + 1.5&times;IQR.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       4. Monthly Climatology & Annual Seasonal Curves (Plotly.js)
+       ========================================================================= -->
+  <div class="atm-card p-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+      <div>
+        <h3 class="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i>
+          <span>Annual Monthly Climatology Comparison Across Stations</span>
+        </h3>
+        <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Mean 12-month annual trajectories demonstrating microclimatic divergence between continental, coastal, oceanic, and tropical regimes.
+        </p>
+      </div>
+      <span class="text-xs font-mono text-[var(--text-muted)]">2016–2023 Climatology</span>
+    </div>
+
+    <!-- Plotly Monthly Trajectory Chart -->
+    <div id="eda-monthly-chart" style="height: 320px; width: 100%;"></div>
+
+    <!-- Seasonal Callout Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[var(--border-subtle)] text-xs font-mono">
+      <div class="p-3 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <span class="text-[10px] text-cyan-400 uppercase font-bold">Winter (DJF)</span>
+        <div class="text-[var(--text-primary)] font-semibold mt-1">Chicago: 1.4°C vs Miami: 26.2°C</div>
+        <div class="text-[11px] text-[var(--text-muted)] mt-0.5">24.8°C North-South continental winter gradient</div>
+      </div>
+      <div class="p-3 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <span class="text-[10px] text-emerald-400 uppercase font-bold">Spring (MAM)</span>
+        <div class="text-[var(--text-primary)] font-semibold mt-1">Seattle: 14.2°C vs Central Park: 16.3°C</div>
+        <div class="text-[11px] text-[var(--text-muted)] mt-0.5">Rapid coastal warming with frequent rain</div>
+      </div>
+      <div class="p-3 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <span class="text-[10px] text-amber-400 uppercase font-bold">Summer (JJA)</span>
+        <div class="text-[var(--text-primary)] font-semibold mt-1">Miami: 32.7°C vs Seattle: 24.1°C</div>
+        <div class="text-[11px] text-[var(--text-muted)] mt-0.5">Pacific maritime cooling caps Seattle summer highs</div>
+      </div>
+      <div class="p-3 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+        <span class="text-[10px] text-violet-400 uppercase font-bold">Fall (SON)</span>
+        <div class="text-[var(--text-primary)] font-semibold mt-1">Rapid transition across northern stations</div>
+        <div class="text-[11px] text-[var(--text-muted)] mt-0.5">Sharpest 1-day temperature drop rates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. Correlation Analysis Heatmap & Pairwise Relationships (Plotly.js)
+       ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Correlation Heatmap Container -->
+    <div class="lg:col-span-7 atm-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="grid" class="w-4 h-4 text-violet-400"></i>
+            <span>Feature Correlation Matrix (Pearson r)</span>
+          </h3>
+          <span class="atm-badge atm-badge-cyan">9 &times; 9 Matrix</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-3">
+          Pairwise linear dependencies across core physical, diurnal, and moisture measurements.
+        </p>
+
+        <!-- Plotly Heatmap Canvas -->
+        <div id="eda-corr-heatmap" style="height: 340px; width: 100%;"></div>
+      </div>
+
+      <div class="pt-3 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)] leading-relaxed">
+        <strong>Correlation Limitations:</strong> Pearson's <em>r</em> captures strictly linear monotonic dependencies. It does NOT identify circular seasonal phases (e.g. <code>SIN_DOY</code> / <code>COS_DOY</code>) or non-linear density shifts where LOF operates.
+      </div>
+    </div>
+
+    <!-- Pairwise Analysis & Meteorological Physical Rules -->
+    <div class="lg:col-span-5 atm-card p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+            <span>Top Correlated Feature Relationships</span>
+          </h3>
+          <span class="text-xs font-mono text-[var(--text-muted)]">Verified Pairs</span>
+        </div>
+        <p class="text-xs text-[var(--text-secondary)] mb-3">
+          Strongest physical couplings observed in the NOAA historical archive.
+        </p>
+
+        <!-- Top Pairs Cards -->
+        <div class="space-y-2.5 text-xs font-mono">
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-emerald-500/30">
+            <div class="flex items-center justify-between font-bold">
+              <span class="text-[var(--text-primary)]">TMAX &harr; TEMP_MEAN</span>
+              <span class="text-emerald-400">+0.988</span>
+            </div>
+            <p class="text-[11px] text-[var(--text-secondary)] mt-1 font-sans">
+              Near-perfect collinearity. The midpoint temperature tracks daytime highs closely with consistent nocturnal cooling.
+            </p>
+          </div>
+
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-cyan-500/30">
+            <div class="flex items-center justify-between font-bold">
+              <span class="text-[var(--text-primary)]">TMAX &harr; TMIN</span>
+              <span class="text-cyan-400">+0.938</span>
+            </div>
+            <p class="text-[11px] text-[var(--text-secondary)] mt-1 font-sans">
+              High positive correlation driven by broad seasonal solar radiation cycles governing daily air masses.
+            </p>
+          </div>
+
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-sky-500/30">
+            <div class="flex items-center justify-between font-bold">
+              <span class="text-[var(--text-primary)]">SNOW &harr; SNWD</span>
+              <span class="text-sky-400">+0.687</span>
+            </div>
+            <p class="text-[11px] text-[var(--text-secondary)] mt-1 font-sans">
+              Physical accumulation coupling: snowfall directly elevates surface snow depth until melt rates dominate.
+            </p>
+          </div>
+
+          <div class="p-2.5 rounded bg-[var(--bg-surface)] border border-amber-500/30">
+            <div class="flex items-center justify-between font-bold">
+              <span class="text-[var(--text-primary)]">TEMP_RANGE &harr; PRCP</span>
+              <span class="text-amber-400">-0.284</span>
+            </div>
+            <p class="text-[11px] text-[var(--text-secondary)] mt-1 font-sans">
+              Negative coupling: cloud cover on rainy days prevents solar surface heating while trapping night radiation, dampening the diurnal range.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 pt-2 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)]">
+        *All coefficients calculated across N = 11,688 verified daily records.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       6. Station-by-Station Comparative Climatology Table
+       ========================================================================= -->
+  <div class="atm-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+        <i data-lucide="table" class="w-4 h-4 text-cyan-400"></i>
+        <span>Multi-Station Climatological Matrix</span>
+      </h3>
+      <span class="text-xs font-mono text-[var(--text-muted)]">4 Stations • 8 Full Years</span>
+    </div>
+    <p class="text-xs text-[var(--text-secondary)] mb-4">
+      Direct comparison of thermal baselines, extreme temperature records, moisture totals, and anomaly sensitivity.
+    </p>
+
+    <div class="overflow-x-auto">
+      <table class="atm-table text-xs font-mono">
+        <thead>
+          <tr>
+            <th>Station Code</th>
+            <th>Name &amp; Climate Zone</th>
+            <th>Elevation</th>
+            <th>Mean TMAX/TMIN</th>
+            <th>Record Extreme (Min/Max)</th>
+            <th>Total PRCP</th>
+            <th>Rain Days %</th>
+            <th>Snow Days</th>
+            <th>Consensus Anomalies</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stn in station_comparison %}
+          <tr>
+            <td><span class="atm-badge atm-badge-cyan">{{ stn.station_id }}</span></td>
+            <td>
+              <div class="font-bold text-[var(--text-primary)]">{{ stn.name }}</div>
+              <div class="text-[10px] text-[var(--text-muted)] font-sans">{{ stn.climate_zone }}</div>
+            </td>
+            <td>{{ stn.elevation_m }}m</td>
+            <td class="font-bold text-cyan-400">{{ stn.temperature.mean_tmax }}° / {{ stn.temperature.mean_tmin }}°C</td>
+            <td>{{ stn.temperature.extreme_low }}° / {{ stn.temperature.extreme_high }}°C</td>
+            <td>{{ stn.moisture.total_precipitation_mm }} mm</td>
+            <td>{{ stn.moisture.rain_day_pct }}% ({{ stn.moisture.rain_days_count }}d)</td>
+            <td>{{ stn.moisture.snow_days_count }}d (Max: {{ stn.moisture.max_snow_depth_mm }}mm)</td>
+            <td>
+              <span class="atm-badge atm-badge-cyan text-[10px]">
+                {{ stn.anomalies.consensus_count }} ({{ ((stn.anomalies.consensus_count / stn.records_count) * 100) | round(2) }}%)
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 p-3 rounded bg-sky-950/20 border border-sky-500/20 text-xs text-sky-200 leading-relaxed font-sans">
+      <strong>Climatological Interpretation Note:</strong> The 4 stations capture vastly divergent climate types: Miami has zero snow days and high baseline warmth, whereas Chicago experiences intense winter freezes (-23.2°C). Unsupervised anomaly detection must evaluate each observation in relation to seasonal and geographical norms rather than applying a naive static threshold across all sites.
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Pass initial data from Flask to JavaScript -->
+<script>
+  window.ATMOSPHERE_EDA_INITIAL = {
+    distribution: {{ initial_distribution | tojson }},
+    correlation: {{ initial_correlation | tojson }},
+    seasonal: {{ initial_seasonal | tojson }}
+  };
+</script>
+
+<!-- EDA Client Controller -->
+<script src="{{ url_for('static', filename='js/eda.js') }}"></script>
+{% endblock %}
+

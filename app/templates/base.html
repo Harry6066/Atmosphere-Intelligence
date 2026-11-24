@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ATMOSPHERE INTELLIGENCE // Weather Anomaly Detection{% endblock %}</title>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('atmosphere-theme');
+        var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = savedTheme || (systemPrefersDark ? 'dark' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            midnight: '#070B14',
+            surface: '#0D1526',
+            card: '#131F38',
+            cyan: {
+              400: '#00F2FE',
+              500: '#00C9E8',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Plotly.js CDN -->
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+  <!-- Atmosphere Intelligence Custom Design System -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/atmosphere.css') }}" />
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] antialiased overflow-x-hidden">
+
+  <!-- Mobile Drawer Backdrop -->
+  <div id="mobile-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity lg:hidden"></div>
+
+  <!-- Mobile Sidebar Drawer -->
+  <div id="mobile-sidebar" class="fixed inset-y-0 left-0 w-72 bg-[var(--bg-sidebar)] z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden flex flex-col border-r border-[var(--border-subtle)]">
+    <div class="h-16 flex items-center justify-between px-5 border-b border-[var(--border-subtle)]">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-bold">
+          <i data-lucide="cloud-lightning" class="w-4 h-4 text-slate-950"></i>
+        </div>
+        <span class="font-bold text-sm tracking-wider text-cyan-400 font-mono">ATMOSPHERE</span>
+      </div>
+      <button id="mobile-sidebar-close" class="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-3">
+      {% include "components/sidebar.html" %}
+    </div>
+  </div>
+
+  <!-- Master Application Layout -->
+  <div class="flex flex-1 min-h-screen">
+    
+    <!-- Desktop Sidebar (Hidden on mobile) -->
+    <div class="hidden lg:block flex-shrink-0" style="width: var(--sidebar-width);">
+      {% include "components/sidebar.html" %}
+    </div>
+
+    <!-- Main Content Stream -->
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300">
+      
+      <!-- Top Navigation Ribbon -->
+      {% include "components/topbar.html" %}
+
+      <!-- Primary Page Body -->
+      <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Platform Footer -->
+      {% include "components/footer.html" %}
+
+    </div>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  {% include "components/toast.html" %}
+
+  <!-- Core JavaScript -->
+  <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+  {% block scripts %}{% endblock %}
+  {% block extra_scripts %}{% endblock %}
+
+</body>
+</html>
+

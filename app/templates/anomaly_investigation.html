@@ -1,0 +1,907 @@
+{% extends "base.html" %}
+{% import "components/states.html" as states %}
+
+{% block title %}ATMOSPHERE INTELLIGENCE // Anomaly Investigation & Extreme Events{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- =========================================================================
+       1. Header & Scientific Identity
+       ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="atm-badge atm-badge-normal">SCIENTIFIC VALIDATION</span>
+        <span class="text-xs font-mono text-[var(--text-muted)]">MODULE 09</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-cyan-400 font-bold">
+          SIH26073 // Phase H
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        Anomaly Investigation & Extreme Events
+      </h1>
+      <p class="text-sm text-[var(--text-secondary)] mt-1.5 max-w-3xl leading-relaxed">
+        Investigate statistical anomalies against verified real-world extreme weather events, inspect multi-day context windows, compare station climatological percentiles, and triage candidates for domain review without falsely diagnosing physical sensor faults.
+      </p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+      <a href="/scientific-insights" class="atm-btn-primary">
+        <i data-lucide="microscope" class="w-4 h-4"></i>
+        <span>Scientific Insights</span>
+      </a>
+      <button id="btn-export-anomalies-csv" class="atm-btn-secondary">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Export Filtered CSV</span>
+      </button>
+      <button id="btn-print-summary" class="atm-btn-secondary" onclick="window.print()">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        <span>Print Summary</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scientific Guardrail Callout Banner -->
+  <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3.5">
+    <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+      <i data-lucide="shield-alert" class="w-5 h-5"></i>
+    </div>
+    <div class="text-xs space-y-1">
+      <div class="font-semibold text-amber-300 text-sm">Scientific Guardrail: Statistical Outlier ≠ Broken Hardware Sensor</div>
+      <p class="text-[var(--text-secondary)] leading-relaxed">
+        Unsupervised algorithms (Isolation Forest and LOF) detect mathematical rarity in high-dimensional feature space. A legitimate meteorological extreme (e.g. a historic freeze or hurricane downpour) will naturally possess low joint density and be flagged as an anomaly. Detections in this workspace are categorized as <strong>Investigation Candidates</strong> requiring domain verification, never as confirmed physical sensor failures.
+      </p>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. Investigation Telemetry Metrics
+       ========================================================================= -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+    
+    <!-- Total Observations -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>DATASET POOL</span>
+        <i data-lucide="database" class="w-3.5 h-3.5 text-cyan-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">
+        {{ "{:,}".format(summary.total_observations) }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">4 stations &bull; 8 years</div>
+    </div>
+
+    <!-- Isolation Forest Flagged -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>IF ANOMALIES</span>
+        <i data-lucide="binary" class="w-3.5 h-3.5 text-cyan-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-cyan-400">
+        {{ "{:,}".format(summary.if_anomalies) }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">{{ summary.if_rate_pct }}% &bull; Global partition</div>
+    </div>
+
+    <!-- LOF Flagged -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>LOF ANOMALIES</span>
+        <i data-lucide="scatter-chart" class="w-3.5 h-3.5 text-amber-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-amber-400">
+        {{ "{:,}".format(summary.lof_anomalies) }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">{{ summary.lof_rate_pct }}% &bull; Local density (k=20)</div>
+    </div>
+
+    <!-- Consensus Anomalies -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] ring-1 ring-purple-500/30">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>CONSENSUS BOTH</span>
+        <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-purple-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-purple-400">
+        {{ "{:,}".format(summary.consensus_anomalies) }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">{{ summary.consensus_rate_pct }}% &bull; Highest triage priority</div>
+    </div>
+
+    <!-- Total Union Anomalies -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>UNION ANOMALIES</span>
+        <i data-lucide="layers" class="w-3.5 h-3.5 text-rose-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-rose-400">
+        {{ "{:,}".format(summary.total_union_anomalies) }}
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">{{ summary.union_rate_pct }}% &bull; Any model flagged</div>
+    </div>
+
+    <!-- Documented Extremes -->
+    <div class="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mb-1">
+        <span>VERIFIED EXTREMES</span>
+        <i data-lucide="award" class="w-3.5 h-3.5 text-emerald-400"></i>
+      </div>
+      <div class="text-2xl font-bold font-mono text-emerald-400">
+        {{ summary.extreme_events_count }} Events
+      </div>
+      <div class="text-[11px] text-[var(--text-secondary)] mt-1">Ground truth climate audit</div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       2B. Set-Theoretic Partition Breakdown (Mutually Exclusive Groups)
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="atm-badge atm-badge-normal">SET PARTITION ANALYSIS</span>
+          <span class="text-xs font-mono text-[var(--text-muted)]">11,688 Observations &bull; 100% Partitioned</span>
+        </div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-5 h-5 text-cyan-400"></i>
+          Set-Theoretic Partition Breakdown
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Decomposition of all 11,688 observations into four strictly mutually exclusive subsets comparing Isolation Forest and Local Outlier Factor anomaly flags.
+        </p>
+      </div>
+
+      <!-- Key Global Metrics Pills -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap font-mono text-xs">
+        <div class="px-3 py-1.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center gap-2">
+          <span class="text-[var(--text-muted)]">Total:</span>
+          <span class="font-bold text-[var(--text-primary)]">11,688</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center gap-2">
+          <span>Anomaly Union:</span>
+          <span class="font-bold">624 (5.34%)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center gap-2">
+          <span>Jaccard:</span>
+          <span class="font-bold">0.125 (12.50%)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-2">
+          <span>Binary Agreement:</span>
+          <span class="font-bold">95.33%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stacked Bar Visualizations (Strictly Mutually Exclusive Partitions) -->
+    <div class="space-y-4">
+      <!-- 1. Full Population Four-Segment Stacked Bar (11,688 Observations) -->
+      <div>
+        <div class="flex items-center justify-between text-xs font-mono mb-1.5">
+          <span class="text-[var(--text-secondary)] font-medium">Full Dataset Population Decomposition (N = 11,688)</span>
+          <span class="text-[var(--text-muted)] text-[11px]">Sum: 11,064 + 273 + 273 + 78 = 11,688 (100.00%)</span>
+        </div>
+        
+        <!-- Four-Segment Proportional Bar -->
+        <div class="w-full h-8 rounded-lg overflow-hidden flex bg-[var(--bg-app)] border border-[var(--border-subtle)] shadow-inner">
+          <div class="bg-slate-600 hover:bg-slate-500 transition-colors flex items-center justify-center text-[11px] font-mono font-bold text-slate-100 cursor-help" style="width: 94.66%;" title="Neither Model (Normal in Both): 11,064 observations (94.66%)">
+            <span class="truncate px-2">Neither / Normal: 11,064 (94.66%)</span>
+          </div>
+          <div class="bg-cyan-500 hover:bg-cyan-400 transition-colors flex items-center justify-center text-[10px] font-mono font-bold text-slate-950 cursor-help" style="width: 2.34%;" title="Isolation Forest Only: 273 observations (2.34%)">
+            <span class="hidden sm:inline">273</span>
+          </div>
+          <div class="bg-amber-500 hover:bg-amber-400 transition-colors flex items-center justify-center text-[10px] font-mono font-bold text-slate-950 cursor-help" style="width: 2.34%;" title="LOF Only: 273 observations (2.34%)">
+            <span class="hidden sm:inline">273</span>
+          </div>
+          <div class="bg-rose-500 hover:bg-rose-400 transition-colors flex items-center justify-center text-[10px] font-mono font-bold text-white cursor-help" style="width: 0.67%;" title="Consensus Both: 78 observations (0.67%)">
+            <span class="hidden sm:inline">78</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Anomaly Union Detail Stacked Bar (624 Observations = 5.34% of Dataset) -->
+      <div>
+        <div class="flex items-center justify-between text-xs font-mono mb-1.5">
+          <span class="text-[var(--text-secondary)] font-medium">Anomaly Union Subset Breakdown (Union = 624 Observations &bull; 5.34% of Dataset)</span>
+          <span class="text-[var(--text-muted)] text-[11px]">Jaccard Overlap: 78 / 624 = 12.50%</span>
+        </div>
+        
+        <div class="w-full h-7 rounded-lg overflow-hidden flex bg-[var(--bg-app)] border border-[var(--border-subtle)] shadow-inner">
+          <div class="bg-cyan-500/80 hover:bg-cyan-500 transition-colors flex items-center justify-center text-[11px] font-mono font-bold text-slate-950 cursor-help" style="width: 43.75%;" title="Isolation Forest Only: 273 observations (43.75% of union)">
+            <span class="truncate px-2">IF Only: 273 (43.75%)</span>
+          </div>
+          <div class="bg-rose-500 hover:bg-rose-400 transition-colors flex items-center justify-center text-[11px] font-mono font-bold text-white cursor-help" style="width: 12.50%;" title="Consensus (Both Models): 78 observations (12.50% of union)">
+            <span class="truncate px-2">Consensus: 78 (12.50%)</span>
+          </div>
+          <div class="bg-amber-500/80 hover:bg-amber-500 transition-colors flex items-center justify-center text-[11px] font-mono font-bold text-slate-950 cursor-help" style="width: 43.75%;" title="LOF Only: 273 observations (43.75% of union)">
+            <span class="truncate px-2">LOF Only: 273 (43.75%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Mutually Exclusive Partitions Grid & Definitions -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-2">
+      <!-- 1. Consensus (Both Models) -->
+      <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-bold flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+            Both Models (Consensus)
+          </span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">0.67%</span>
+        </div>
+        <div class="text-2xl font-bold font-mono text-rose-300">78 <span class="text-xs text-rose-400 font-normal">obs</span></div>
+        <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+          <strong class="text-rose-300">Consensus</strong> = both algorithms flag the same observation (12.50% of anomaly union). Highest priority for operational triage.
+        </p>
+      </div>
+
+      <!-- 2. Isolation Forest Only -->
+      <div class="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/25 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+            Isolation Forest Only
+          </span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">2.34%</span>
+        </div>
+        <div class="text-2xl font-bold font-mono text-cyan-300">273 <span class="text-xs text-cyan-400 font-normal">obs</span></div>
+        <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+          <strong class="text-cyan-300">IF-only</strong> = only Isolation Forest flags it (43.75% of union). Driven by global coordinate extremity across tree splits.
+        </p>
+      </div>
+
+      <!-- 3. LOF Only -->
+      <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            LOF Only
+          </span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">2.34%</span>
+        </div>
+        <div class="text-2xl font-bold font-mono text-amber-300">273 <span class="text-xs text-amber-400 font-normal">obs</span></div>
+        <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+          <strong class="text-amber-300">LOF-only</strong> = only LOF flags it (43.75% of union). Driven by local density sparsity relative to k=20 nearest neighbors.
+        </p>
+      </div>
+
+      <!-- 4. Neither Model (Normal) -->
+      <div class="p-4 rounded-xl bg-slate-500/10 border border-[var(--border-subtle)] space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] font-bold flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+            Neither Model (Normal)
+          </span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-500/20 text-[var(--text-secondary)] font-bold">94.66%</span>
+        </div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">11,064 <span class="text-xs text-[var(--text-muted)] font-normal">obs</span></div>
+        <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+          <strong class="text-[var(--text-primary)]">Neither</strong> = both algorithms classify it as normal. Consistent baseline meteorological state.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. Historical Extreme Weather Audit Table
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="calendar-check" class="w-5 h-5 text-cyan-400"></i>
+          Historical Extreme Weather Audit (Ground Truth Benchmarks)
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Documented severe climate events from NOAA National Centers for Environmental Information (NCEI) and National Weather Service records used to evaluate unsupervised model response.
+        </p>
+      </div>
+      <span class="text-xs font-mono text-[var(--text-muted)] px-2.5 py-1 rounded bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+        Source: NOAA / NWS Climate Archives
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-[var(--border-subtle)] text-[var(--text-muted)] font-mono uppercase text-[11px]">
+            <th class="py-3 px-3">Event Name</th>
+            <th class="py-3 px-3">Station</th>
+            <th class="py-3 px-3">Date Range</th>
+            <th class="py-3 px-3">Days</th>
+            <th class="py-3 px-3">Documented Meteorological Phenomenon</th>
+            <th class="py-3 px-3 text-center">IF Flags</th>
+            <th class="py-3 px-3 text-center">LOF Flags</th>
+            <th class="py-3 px-3 text-center">Consensus</th>
+            <th class="py-3 px-3">Scientific Classification</th>
+            <th class="py-3 px-3 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--border-subtle)] text-[var(--text-primary)]">
+          {% for ev in extreme_events %}
+          <tr class="hover:bg-[var(--bg-card-hover)] transition-colors">
+            <td class="py-3 px-3 font-semibold text-cyan-400">{{ ev.event_name }}</td>
+            <td class="py-3 px-3 font-mono">
+              <span class="text-[var(--text-primary)]">{{ ev.station_id }}</span>
+              <span class="block text-[10px] text-[var(--text-muted)]">{{ ev.station_name }}</span>
+            </td>
+            <td class="py-3 px-3 font-mono whitespace-nowrap">{{ ev.date_range }}</td>
+            <td class="py-3 px-3 font-mono">{{ ev.days }}</td>
+            <td class="py-3 px-3 text-[var(--text-secondary)] max-w-xs">{{ ev.expected_phenomenon }}</td>
+            <td class="py-3 px-3 text-center font-mono font-bold {% if ev.if_flagged_days > 0 %}text-cyan-400{% else %}text-[var(--text-muted)]{% endif %}">
+              {{ ev.if_flagged_days }} / {{ ev.days }}
+            </td>
+            <td class="py-3 px-3 text-center font-mono font-bold {% if ev.lof_flagged_days > 0 %}text-amber-400{% else %}text-[var(--text-muted)]{% endif %}">
+              {{ ev.lof_flagged_days }} / {{ ev.days }}
+            </td>
+            <td class="py-3 px-3 text-center font-mono font-bold {% if ev.consensus_flagged_days > 0 %}text-purple-400{% else %}text-[var(--text-muted)]{% endif %}">
+              {{ ev.consensus_flagged_days }} / {{ ev.days }}
+            </td>
+            <td class="py-3 px-3">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <i data-lucide="check-circle" class="w-3 h-3"></i>
+                {{ ev.scientific_classification }}
+              </span>
+              <span class="block text-[10px] text-[var(--text-muted)] mt-0.5">Not a sensor defect</span>
+            </td>
+            <td class="py-3 px-3 text-right">
+              <button
+                class="btn-inspect-extreme px-2.5 py-1 rounded bg-[var(--bg-app)] hover:bg-[var(--bg-surface)] text-cyan-400 hover:text-cyan-300 border border-[var(--border-subtle)] font-mono text-[11px] transition-colors"
+                data-station="{{ ev.station_id }}"
+                data-date="{{ ev.date_range.split(' to ')[0] }}"
+              >
+                Inspect Day 1
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. Top 10 High-Severity Consensus Anomalies
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-purple-400"></i>
+          Top High-Severity Consensus Anomalies (Priority Review Queue)
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Ranked by Severity Index: <code>(-IF_SCORE) &times; ((-LOF_SCORE) - 1.0)</code>. Observations where both global isolation and local density drop agree most intensely.
+        </p>
+      </div>
+      <span class="text-xs font-mono text-[var(--text-muted)]">Showing top 10 of {{ summary.top_suspicious_count }} ranked candidates</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-[var(--border-subtle)] text-[var(--text-muted)] font-mono uppercase text-[11px]">
+            <th class="py-2.5 px-3">#</th>
+            <th class="py-2.5 px-3">Station</th>
+            <th class="py-2.5 px-3">Date</th>
+            <th class="py-2.5 px-3 text-right">TMAX (°C)</th>
+            <th class="py-2.5 px-3 text-right">TMIN (°C)</th>
+            <th class="py-2.5 px-3 text-right">Range (°C)</th>
+            <th class="py-2.5 px-3 text-right">PRCP (mm)</th>
+            <th class="py-2.5 px-3 text-right">Snow (mm)</th>
+            <th class="py-2.5 px-3 text-right">1-Day Δ</th>
+            <th class="py-2.5 px-3 text-right">IF Score</th>
+            <th class="py-2.5 px-3 text-right">LOF Score</th>
+            <th class="py-2.5 px-3 text-right">Severity</th>
+            <th class="py-2.5 px-3">Investigation Category</th>
+            <th class="py-2.5 px-3 text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--border-subtle)] text-[var(--text-primary)]">
+          {% for susp in top_suspicious %}
+          <tr class="hover:bg-[var(--bg-card-hover)] transition-colors cursor-pointer" onclick="AtmosphereInvestigation.inspectObservation('{{ susp.station_id }}', '{{ susp.date }}')">
+            <td class="py-2.5 px-3 font-mono font-bold text-[var(--text-muted)]">{{ susp.rank }}</td>
+            <td class="py-2.5 px-3 font-mono">
+              <span class="text-[var(--text-primary)]">{{ susp.station_id }}</span>
+              <span class="block text-[10px] text-[var(--text-muted)]">{{ susp.station_name.split(',')[0] }}</span>
+            </td>
+            <td class="py-2.5 px-3 font-mono font-semibold">{{ susp.date }}</td>
+            <td class="py-2.5 px-3 text-right font-mono">{{ susp.tmax }}</td>
+            <td class="py-2.5 px-3 text-right font-mono">{{ susp.tmin }}</td>
+            <td class="py-2.5 px-3 text-right font-mono">{{ susp.temp_range }}</td>
+            <td class="py-2.5 px-3 text-right font-mono {% if susp.prcp > 30 %}text-blue-400 font-bold{% endif %}">{{ susp.prcp }}</td>
+            <td class="py-2.5 px-3 text-right font-mono {% if susp.snow > 50 %}text-cyan-300 font-bold{% endif %}">{{ susp.snow }}</td>
+            <td class="py-2.5 px-3 text-right font-mono">{{ susp.tmax_diff_1d }}</td>
+            <td class="py-2.5 px-3 text-right font-mono text-cyan-400">{{ susp.if_score }}</td>
+            <td class="py-2.5 px-3 text-right font-mono text-amber-400">{{ susp.lof_score }}</td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold text-purple-400">{{ susp.severity_index }}</td>
+            <td class="py-2.5 px-3">
+              {% if susp.investigation_status == 'Possible Genuine Meteorological Extreme' %}
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  {{ susp.investigation_status }}
+                </span>
+              {% else %}
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  {{ susp.investigation_status }}
+                </span>
+              {% endif %}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <button
+                class="px-2 py-1 rounded bg-[var(--bg-app)] hover:bg-[var(--bg-surface)] text-cyan-400 border border-[var(--border-subtle)] font-mono text-[10px] transition-colors"
+                onclick="event.stopPropagation(); AtmosphereInvestigation.inspectObservation('{{ susp.station_id }}', '{{ susp.date }}')"
+              >
+                Inspect
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. Interactive Historical Timeline Chart
+       ========================================================================= -->
+  <div id="historical-timeline-card" class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="trending-up" class="w-5 h-5 text-cyan-400"></i>
+          Historical Anomaly Timeline (2016–2023)
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Monthly anomaly density across the 8-year record comparing Isolation Forest, LOF, and Consensus detections against seasonal weather extremes.
+        </p>
+      </div>
+
+      <!-- Timeline Controls -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <div>
+          <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Station Filter</label>
+          <select id="timeline-filter-station" class="text-xs py-1.5 px-2.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+            <option value="ALL">All Stations (Pooled)</option>
+            {% for st in stations %}
+            <option value="{{ st.id }}">{{ st.id }} - {{ st.name.split(',')[0] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Year Scope</label>
+          <select id="timeline-filter-year" class="text-xs py-1.5 px-2.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+            <option value="ALL">All Years (2016–2023)</option>
+            <option value="2016">2016</option>
+            <option value="2017">2017</option>
+            <option value="2018">2018</option>
+            <option value="2019">2019 (Polar Vortex)</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021 (Heat Dome / Ida)</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Container with Managed Loading / Error Lifecycle & Clean Boundary -->
+    <div class="relative w-full rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] overflow-hidden">
+      <!-- Loading State Overlay -->
+      <div id="timeline-loading-state" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[var(--bg-app)]/90 backdrop-blur-xs transition-opacity duration-200">
+        <div class="flex items-center gap-2.5 text-xs font-mono text-[var(--text-muted)]">
+          <i data-lucide="loader" class="w-4 h-4 animate-spin text-cyan-400"></i>
+          <span class="font-medium">Loading historical anomaly timeline...</span>
+        </div>
+      </div>
+
+      <!-- Error State Overlay -->
+      <div id="timeline-error-state" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center bg-[var(--bg-app)] p-6 text-center">
+        <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-400 mb-2"></i>
+        <p class="text-xs font-mono text-[var(--text-primary)] font-semibold" id="timeline-error-msg">Failed to load timeline data</p>
+        <p class="text-[11px] text-[var(--text-muted)] mt-1 mb-3">The timeline API did not return observations for the selected criteria.</p>
+        <button id="btn-timeline-retry" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-mono hover:bg-cyan-500/30 transition-colors">
+          Retry Loading
+        </button>
+      </div>
+
+      <!-- Empty State Overlay -->
+      <div id="timeline-empty-state" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center bg-[var(--bg-app)] p-6 text-center">
+        <i data-lucide="inbox" class="w-8 h-8 text-[var(--text-muted)] mb-2"></i>
+        <p class="text-xs font-mono text-[var(--text-primary)] font-semibold">No Timeline Observations Found</p>
+        <p class="text-[11px] text-[var(--text-muted)] mt-1">No anomalies match the selected station and year scope filter.</p>
+      </div>
+
+      <!-- Dedicated Responsive Chart Target (360px mobile to 420px desktop) -->
+      <div id="chart-investigation-timeline" class="w-full h-[360px] sm:h-[390px] md:h-[420px]"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. Observation Inspector & Climatological Context
+       ========================================================================= -->
+  <div id="observation-inspector-card" class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border-subtle)]">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-mono text-cyan-400 font-bold uppercase">DETAILED OBSERVATION AUDIT</span>
+          <span id="inspector-badge-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            Consensus Anomaly (High Priority Review)
+          </span>
+        </div>
+        <h2 id="inspector-title" class="text-xl font-bold text-[var(--text-primary)] font-mono">
+          USW00094846 // 2019-01-30 (Chicago O'Hare Intl Airport)
+        </h2>
+        <p id="inspector-subtitle" class="text-xs text-[var(--text-secondary)] mt-0.5">
+          Historic Subzero Cold Wave (Chicago Polar Vortex) &bull; Latitude: 41.96° &bull; Longitude: -87.93° &bull; Elevation: 204.8m
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-xs text-[var(--text-muted)] font-mono">Severity:</span>
+        <span id="inspector-severity-val" class="text-lg font-bold font-mono text-purple-400">0.0651</span>
+      </div>
+    </div>
+
+    <!-- 4 Sub-Panels: Readings, Model Diagnostic, Station Percentiles, Narrative -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+      <!-- Column 1: Physical Meteorological Measurements -->
+      <div class="space-y-3 p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+        <div class="text-xs font-mono font-semibold uppercase text-[var(--text-muted)] flex items-center justify-between">
+          <span>MEASUREMENTS</span>
+          <i data-lucide="thermometer" class="w-3.5 h-3.5 text-cyan-400"></i>
+        </div>
+        
+        <div class="space-y-2 text-xs font-mono">
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">TMAX (High)</span>
+            <span id="insp-tmax" class="font-bold text-[var(--text-primary)]">-23.2 °C</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">TMIN (Low)</span>
+            <span id="insp-tmin" class="font-bold text-cyan-400">-30.5 °C</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">TEMP_RANGE</span>
+            <span id="insp-range" class="font-bold text-[var(--text-primary)]">7.3 °C</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">PRCP (Precip)</span>
+            <span id="insp-prcp" class="font-bold text-[var(--text-primary)]">0.0 mm</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">SNOW (Fall)</span>
+            <span id="insp-snow" class="font-bold text-[var(--text-primary)]">0.0 mm</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">SNWD (Depth)</span>
+            <span id="insp-snwd" class="font-bold text-[var(--text-primary)]">200.0 mm</span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <span class="text-[var(--text-secondary)]">1-Day Δ TMAX</span>
+            <span id="insp-diff" class="font-bold text-[var(--text-primary)]">-11.1 °C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Detection Diagnostics -->
+      <div class="space-y-3 p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+        <div class="text-xs font-mono font-semibold uppercase text-[var(--text-muted)] flex items-center justify-between">
+          <span>MODEL DIAGNOSTICS</span>
+          <i data-lucide="cpu" class="w-3.5 h-3.5 text-purple-400"></i>
+        </div>
+
+        <div class="space-y-2 text-xs font-mono">
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">Isolation Forest</span>
+            <span id="insp-if-pred" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400">
+              Anomaly (-1)
+            </span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">IF Score</span>
+            <span id="insp-if-score" class="font-bold text-cyan-400">-0.1316</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">LOF (k=20)</span>
+            <span id="insp-lof-pred" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400">
+              Anomaly (-1)
+            </span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">LOF Score</span>
+            <span id="insp-lof-score" class="font-bold text-amber-400">-1.4944</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-[var(--border-subtle)]">
+            <span class="text-[var(--text-secondary)]">Consensus</span>
+            <span id="insp-con-label" class="font-bold text-purple-400">Consensus Anomaly</span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <span class="text-[var(--text-secondary)]">NOAA QC Flags</span>
+            <span id="insp-qc-status" class="text-emerald-400 font-bold">Passed (Clean)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: Climatological Percentiles in Station Distribution -->
+      <div class="space-y-3 p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+        <div class="text-xs font-mono font-semibold uppercase text-[var(--text-muted)] flex items-center justify-between">
+          <span>STATION PERCENTILES</span>
+          <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+        </div>
+
+        <div id="inspector-percentiles-container" class="space-y-2 text-xs">
+          <!-- Dynamically populated percentile progress bars -->
+          <div>
+            <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)] mb-0.5">
+              <span>TMIN Extremity</span>
+              <span id="pct-tmin-val" class="font-bold text-cyan-400">0.0th %ile (Record Low)</span>
+            </div>
+            <div class="w-full bg-[var(--border-subtle)] h-1.5 rounded-full overflow-hidden">
+              <div id="pct-tmin-bar" class="bg-cyan-400 h-full rounded-full" style="width: 2%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)] mb-0.5">
+              <span>TMAX Extremity</span>
+              <span id="pct-tmax-val" class="font-bold text-cyan-400">0.0th %ile (Record High)</span>
+            </div>
+            <div class="w-full bg-[var(--border-subtle)] h-1.5 rounded-full overflow-hidden">
+              <div id="pct-tmax-bar" class="bg-cyan-400 h-full rounded-full" style="width: 2%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)] mb-0.5">
+              <span>Snow Depth (SNWD)</span>
+              <span id="pct-snwd-val" class="font-bold text-cyan-400">97.8th %ile</span>
+            </div>
+            <div class="w-full bg-[var(--border-subtle)] h-1.5 rounded-full overflow-hidden">
+              <div id="pct-snwd-bar" class="bg-cyan-400 h-full rounded-full" style="width: 97.8%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)] mb-0.5">
+              <span>Precipitation (PRCP)</span>
+              <span id="pct-prcp-val" class="font-bold text-[var(--text-muted)]">50.0th %ile (Dry)</span>
+            </div>
+            <div class="w-full bg-[var(--border-subtle)] h-1.5 rounded-full overflow-hidden">
+              <div id="pct-prcp-bar" class="bg-[var(--text-muted)] h-full rounded-full" style="width: 50%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 4: Scientific Rationale & Investigation Label -->
+      <div class="space-y-3 p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between">
+        <div>
+          <div class="text-xs font-mono font-semibold uppercase text-[var(--text-muted)] flex items-center justify-between mb-2">
+            <span>SCIENTIFIC RATIONALE</span>
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i>
+          </div>
+          <p id="inspector-rationale-text" class="text-xs text-[var(--text-secondary)] leading-relaxed">
+            This observation coincides with an independently verified, documented extreme climate event (the historic Chicago Polar Vortex). The anomaly reflects real atmospheric extremity rather than equipment malfunction.
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-[var(--border-subtle)]">
+          <div class="text-[10px] font-mono uppercase text-[var(--text-muted)] mb-1">Recommended Action</div>
+          <div id="inspector-action-text" class="text-xs font-semibold text-emerald-400">
+            Retain in Climate Record (Verified Valid Extreme)
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 7-Day Context Window (D-3 to D+3) -->
+    <div class="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono font-semibold text-[var(--text-secondary)] uppercase">
+          7-Day Temporal Context Window (Surrounding Weather System)
+        </span>
+        <span class="text-[11px] text-[var(--text-muted)]">Center date highlighted &bull; Useful for spotting single-day sensor spikes vs multi-day storms</span>
+      </div>
+
+      <div id="inspector-context-window-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        <!-- Dynamically rendered 7 day cards -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. Filterable Anomaly Ledger & Investigation Queue
+       ========================================================================= -->
+  <div class="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <i data-lucide="list-filter" class="w-5 h-5 text-cyan-400"></i>
+          Observation Investigation Ledger
+        </h2>
+        <p class="text-xs text-[var(--text-secondary)] mt-1">
+          Full query ledger across all 11,688 observations. Filter by station, model classification, consensus status, or NOAA QC flags. Click any row to load into the detailed inspector.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="ledger-count-badge" class="text-xs font-mono text-[var(--text-muted)] px-2.5 py-1 rounded bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+          Showing {{ initial_observations['items']|length }} of {{ initial_observations.total }} records
+        </span>
+      </div>
+    </div>
+
+    <!-- Filter Toolbar -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 p-3.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+      
+      <!-- Station Filter -->
+      <div>
+        <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Station</label>
+        <select id="filter-station" class="w-full text-xs py-1.5 px-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+          <option value="ALL">All Stations</option>
+          {% for st in stations %}
+          <option value="{{ st.id }}">{{ st.id }} - {{ st.name.split(',')[0] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Classification Filter -->
+      <div>
+        <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Model Flag</label>
+        <select id="filter-classification" class="w-full text-xs py-1.5 px-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+          <option value="all">All Records</option>
+          <option value="consensus" selected>Consensus Anomaly (78)</option>
+          <option value="if_only">IF Only (273)</option>
+          <option value="lof_only">LOF Only (273)</option>
+          <option value="any_anomaly">Any Anomaly (624)</option>
+          <option value="normal">Normal Inliers (11,064)</option>
+        </select>
+      </div>
+
+      <!-- Year Filter -->
+      <div>
+        <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Year</label>
+        <select id="filter-year" class="w-full text-xs py-1.5 px-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+          <option value="ALL">All Years</option>
+          <option value="2016">2016</option>
+          <option value="2017">2017</option>
+          <option value="2018">2018</option>
+          <option value="2019">2019</option>
+          <option value="2020">2020</option>
+          <option value="2021">2021</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+        </select>
+      </div>
+
+      <!-- Season Filter -->
+      <div>
+        <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Season</label>
+        <select id="filter-season" class="w-full text-xs py-1.5 px-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+          <option value="ALL">All Seasons</option>
+          <option value="Winter">Winter</option>
+          <option value="Spring">Spring</option>
+          <option value="Summer">Summer</option>
+          <option value="Fall">Fall</option>
+        </select>
+      </div>
+
+      <!-- NOAA Flag Filter -->
+      <div>
+        <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Data Quality</label>
+        <select id="filter-qflag" class="w-full text-xs py-1.5 px-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-cyan-400">
+          <option value="all">All Quality States</option>
+          <option value="flagged">Flagged Violations</option>
+          <option value="clean">Verified Clean</option>
+        </select>
+      </div>
+
+      <!-- Search Input -->
+      <div>
+        <label class="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Date Search</label>
+        <input
+          type="text"
+          id="filter-search"
+          placeholder="e.g. 2019-01 or Chicago"
+          class="w-full text-xs py-1.5 px-2.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-400"
+        />
+      </div>
+
+    </div>
+
+    <!-- Ledger Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-[var(--border-subtle)] text-[var(--text-muted)] font-mono uppercase text-[11px]">
+            <th class="py-2.5 px-3 cursor-pointer hover:text-cyan-400" onclick="AtmosphereInvestigation.setSort('date')">
+              Date & Station
+            </th>
+            <th class="py-2.5 px-3">Season</th>
+            <th class="py-2.5 px-3 text-right cursor-pointer hover:text-cyan-400" onclick="AtmosphereInvestigation.setSort('tmax')">
+              TMAX (°C)
+            </th>
+            <th class="py-2.5 px-3 text-right cursor-pointer hover:text-cyan-400" onclick="AtmosphereInvestigation.setSort('tmin')">
+              TMIN (°C)
+            </th>
+            <th class="py-2.5 px-3 text-right cursor-pointer hover:text-cyan-400" onclick="AtmosphereInvestigation.setSort('prcp')">
+              PRCP (mm)
+            </th>
+            <th class="py-2.5 px-3 text-right cursor-pointer hover:text-cyan-400" onclick="AtmosphereInvestigation.setSort('snow')">
+              Snow (mm)
+            </th>
+            <th class="py-2.5 px-3 text-center">IF</th>
+            <th class="py-2.5 px-3 text-center">LOF</th>
+            <th class="py-2.5 px-3 text-center">Consensus</th>
+            <th class="py-2.5 px-3 text-right cursor-pointer hover:text-cyan-400" onclick="AtmosphereInvestigation.setSort('severity')">
+              Severity
+            </th>
+            <th class="py-2.5 px-3">Investigation Status</th>
+            <th class="py-2.5 px-3 text-right">Inspect</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-table-body" class="divide-y divide-[var(--border-subtle)] text-[var(--text-primary)]">
+          <!-- Populated by JS controller -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="flex items-center justify-between pt-3 border-t border-[var(--border-subtle)] flex-wrap gap-2">
+      <div class="text-xs font-mono text-[var(--text-muted)]" id="pagination-info">
+        Page 1 of 1 (15 items per page)
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-page-prev" class="px-3 py-1 rounded bg-[var(--bg-app)] hover:bg-[var(--bg-card-hover)] text-xs font-mono border border-[var(--border-subtle)] text-[var(--text-primary)] disabled:opacity-40 transition-colors">
+          Previous
+        </button>
+        <span id="pagination-pages-pills" class="flex items-center gap-1"></span>
+        <button id="btn-page-next" class="px-3 py-1 rounded bg-[var(--bg-app)] hover:bg-[var(--bg-card-hover)] text-xs font-mono border border-[var(--border-subtle)] text-[var(--text-primary)] disabled:opacity-40 transition-colors">
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/anomaly_investigation.js') }}"></script>
+<script>
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const timelineCard = document.getElementById('historical-timeline-card');
+    const chart = document.getElementById('chart-investigation-timeline');
+    const inspector = document.getElementById('observation-inspector-card');
+    const loading = document.getElementById('timeline-loading-state');
+    if (timelineCard && chart && inspector && loading) {
+      const tBox = timelineCard.getBoundingClientRect();
+      const cBox = chart.getBoundingClientRect();
+      const iBox = inspector.getBoundingClientRect();
+      const audit = {
+        timeline_top: Math.round(tBox.top),
+        timeline_bottom: Math.round(tBox.bottom),
+        timeline_height: Math.round(tBox.height),
+        chart_top: Math.round(cBox.top),
+        chart_bottom: Math.round(cBox.bottom),
+        chart_height: Math.round(cBox.height),
+        chart_inside_card: (cBox.top >= tBox.top && cBox.bottom <= tBox.bottom + 2),
+        inspector_top: Math.round(iBox.top),
+        gap_between_timeline_and_inspector: Math.round(iBox.top - tBox.bottom),
+        no_overlap: iBox.top >= tBox.bottom,
+        loading_hidden: loading.classList.contains('hidden')
+      };
+      document.body.setAttribute('data-layout-audit', JSON.stringify(audit));
+    }
+  }, 500);
+});
+</script>
+{% endblock %}
+

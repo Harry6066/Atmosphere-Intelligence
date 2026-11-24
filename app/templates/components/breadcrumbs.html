@@ -1,0 +1,24 @@
+<!-- Breadcrumb Trail Component -->
+<nav class="flex items-center text-xs font-medium font-sans" aria-label="Breadcrumb">
+  <ol class="flex items-center space-x-1.5 sm:space-x-2">
+    <li>
+      <a href="/" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors inline-flex items-center gap-1">
+        <i data-lucide="cloud-sun" class="w-3.5 h-3.5 text-[var(--accent-cyan)]"></i>
+        <span class="hidden sm:inline">ATMOSPHERE</span>
+      </a>
+    </li>
+    {% if module_category %}
+    <li class="flex items-center text-[var(--text-muted)]">
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+      <span class="ml-1.5 text-[var(--text-secondary)] font-mono text-[11px]">{{ module_category }}</span>
+    </li>
+    {% endif %}
+    {% if module_title %}
+    <li class="flex items-center text-[var(--text-primary)] font-semibold" aria-current="page">
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[var(--text-muted)]"></i>
+      <span class="ml-1.5">{{ module_title }}</span>
+    </li>
+    {% endif %}
+  </ol>
+</nav>
+
